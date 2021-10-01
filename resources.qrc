@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/Background_glossy2.png</file>
+        <file>img/bad_pas2.png</file>
+        <file>img/checkbox_isChecked1.png</file>
+        <file>img/emptiness2.png</file>
+        <file>img/good_pas2.png</file>
+        <file>img/image_forest.png</file>
+        <file>img/my_Styles2.qss</file>
+        <file>img/nice_pas2.png</file>
+        <file>ico4017.ico</file>
+        <file>img/ico4017.png</file>
+        <file>img/white_glossy _Minimum.png</file>
+    </qresource>
+</RCC>
