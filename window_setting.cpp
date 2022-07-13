@@ -1,39 +1,66 @@
 #include "window_setting.h"
-#include <QDesktopServices>
 
 
-
-Window_setting::Window_setting()
-
+Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
 {
     Setting_window = new QWidget(this);
     Setting_window->setObjectName("Setting_window");
-    set_mail_authoriz=0;                        //инициализация настройки аутентификации по почте
-    permission_to_save=false;                   //инициализация
 
     //Виджеты показа текущего пароля
     label_saved_passw = new QLabel(this);
     label_saved_passw->setText(tr("Текущий мастер-пароль:"));
     enter_old_pas = new QLineEdit(this);
-    enter_old_pas->setStyleSheet("background-color:rgb(255,255,255);");
-    enter_old_pas->setFixedWidth(600);
+    enter_old_pas->setFixedWidth(550);
+
+    //Копка видимости текущего пароля
+    visibleOldPas = new QPushButton(this);
+    visibleOldPas->setIcon(QIcon(":/img/closed_lock.png"));
+    visibleOldPas->setIconSize(QSize(26,26));
+    visibleOldPas->setFixedHeight(26);
+    visibleOldPas->setFixedWidth(26);
+    visibleOldPas->setToolTip(tr("Изменение видимости пароля"));
+    connect(visibleOldPas, &QPushButton::clicked, this, &Window_setting::changeVisibleOld_pas);
+
+    //горизонт компоновка текущего пароля
+    horizontal_old_pas = new QHBoxLayout();
+    horizontal_old_pas->setSpacing(5);
+    horizontal_old_pas->setMargin(15);
+    horizontal_old_pas->addWidget(enter_old_pas);
+    horizontal_old_pas->setAlignment(enter_old_pas, Qt::AlignLeft);
+    horizontal_old_pas->addWidget(visibleOldPas);
+    horizontal_old_pas->setAlignment(visibleOldPas, Qt::AlignLeft);
 
     //Виджеты ввода нового пароля
     enter_new_pas = new QLineEdit(this);
-    enter_new_pas->setStyleSheet("background-color:rgb(255,255,255);");
     connect(enter_new_pas, SIGNAL(textChanged(const QString &)), this, SLOT(difficult_of_passw()));
     enter_new_pas->installEventFilter(this);
 
+    //Копка видимости нового пароля
+    visibleNewPas = new QPushButton(this);
+    visibleNewPas->setIcon(QIcon(":/img/closed_lock.png"));
+    visibleNewPas->setIconSize(QSize(26,26));
+    visibleNewPas->setFixedHeight(26);
+    visibleNewPas->setFixedWidth(26);
+    visibleNewPas->setToolTip(tr("Изменение видимости пароля"));
+    connect(visibleNewPas, &QPushButton::clicked, this, &Window_setting::changeVisibleNew_pas);
+
+    //horizontal_new_pas
+    //вертик компоновка текущего пароля
+    horizontal_new_pas = new QHBoxLayout();
+    horizontal_new_pas->setSpacing(5);
+    horizontal_new_pas->addWidget(enter_new_pas);
+    horizontal_new_pas->addWidget(visibleNewPas);
+    horizontal_old_pas->setAlignment(visibleNewPas, Qt::AlignTop);
+
     //Кнопки управления окном
-    save_pas1 = new QPushButton(this);
-    save_pas1->setText(tr("Сохранить настройки"));
-    connect(save_pas1, SIGNAL(clicked()), this, SLOT(save1()));
-    show_current_pas = new QPushButton(this);
-    show_current_pas->setText(tr("Обновить окно"));
-    connect(show_current_pas, SIGNAL(clicked()), this, SLOT(show1()));
-    cancel_setting = new QPushButton(this);
-    cancel_setting->setText(tr("Отмена"));
-    connect(cancel_setting, SIGNAL(clicked()), this, SLOT(cancel1()));
+    save_settings = new QPushButton(this);
+    save_settings->setText(tr("Сохранить настройки"));
+    save_settings->setFixedWidth(200);
+    connect(save_settings, SIGNAL(clicked()), this, SLOT(save()));
+    cancel_settings = new QPushButton(this);
+    cancel_settings->setText(tr("Отмена"));
+    cancel_settings->setFixedWidth(200);
+    connect(cancel_settings, SIGNAL(clicked()), this, SLOT(cancel()));
 
     //Сложность пароля текущая
     label_difficult_passw = new QLabel(this);
@@ -53,7 +80,6 @@ Window_setting::Window_setting()
     QFont font1("Times", 9, QFont::Normal);
     group_check_DB->setTitle(tr("Проверить новый пароль в базе данных:"));
     label_check_pas_DB = new QLabel(this);
-    //label_check_pas_DB->openExternalLinks();
     label_check_pas_DB->setTextInteractionFlags(Qt ::LinksAccessibleByMouse);
     label_check_pas_DB->setOpenExternalLinks(true);
     label_check_pas_DB->setText(tr("Приложение использует базу данных авторитетного сервиса "
@@ -76,15 +102,16 @@ Window_setting::Window_setting()
     vertical_qroup->addLayout(horizontal_group);
     group_check_DB->setLayout(vertical_qroup);
     group_check_DB->setFont(font1);
+    group_check_DB->setFixedHeight(120);
 
     //Компоновка виджетов подключения аутентификации по email
     check_box_for_email = new QCheckBox(this);
-    connect(check_box_for_email,SIGNAL(toggled(bool)), this, SLOT(visible_check()));
+    change_status_mail=false;
+    connect(check_box_for_email,SIGNAL(toggled(bool)), this, SLOT(visible_checkbox()));
     label_checkbox = new QLabel(this);
     label_checkbox->setText(tr("Аутентификация по электронной почте"));
     label_email = new QLabel(this);
     enter_address_mail = new QLineEdit(this);
-    enter_address_mail->setStyleSheet("background-color:rgb(255,255,255);");
     connect(enter_address_mail, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
 
     //Окно паузы чтобы программа успела проверить корректность email
@@ -104,7 +131,7 @@ Window_setting::Window_setting()
     vertical_new_pas = new QVBoxLayout();    //вертикальное размещение 1
     vertical_new_pas->setMargin(10);                    //Толщина рамки
     vertical_new_pas->setSpacing(5);                    //Расстояние между виджетами
-    vertical_new_pas->addWidget(enter_new_pas);
+    vertical_new_pas->addLayout(horizontal_new_pas);
     vertical_new_pas->addWidget(label_difficult_passw);
     vertical_new_pas->setAlignment(label_difficult_passw, Qt::AlignLeft);
     groupBox_new_pas->setLayout(vertical_new_pas);        //группа с рамкой
@@ -131,17 +158,15 @@ Window_setting::Window_setting()
     horizontal_button_sett = new QHBoxLayout;
     horizontal_button_sett->setMargin(5);
     horizontal_button_sett->setSpacing(10);
-    horizontal_button_sett->addWidget(save_pas1);
-    horizontal_button_sett->addWidget(show_current_pas);
-    horizontal_button_sett->addWidget(cancel_setting);
+    horizontal_button_sett->addWidget(save_settings, Qt::AlignHCenter);
+    horizontal_button_sett->addWidget(cancel_settings, Qt::AlignHCenter);
 
     //Компоновка всех элементов
-    QVBoxLayout* vertical1 = new QVBoxLayout;
-    vertical1->setMargin(10);                       //Толщина рамки
-    vertical1->setSpacing(15);                     //Расстояние между виджетами
+    vertical1 = new QVBoxLayout;
+    vertical1->setMargin(20);                       //Толщина рамки
+    vertical1->setSpacing(10);                     //Расстояние между виджетами
     vertical1->addWidget(label_saved_passw);
-    vertical1->addWidget(enter_old_pas);
-    vertical1->setAlignment(enter_old_pas, Qt::AlignCenter);
+    vertical1->addLayout(horizontal_old_pas);
     vertical1->addWidget(groupBox_new_pas);
     vertical1->addLayout(horizontal_widg_gen);
     vertical1->addWidget(group_check_DB);
@@ -153,154 +178,240 @@ Window_setting::Window_setting()
 
     network_connection1 = new Network_connection();        //объект передаваемый в поток не должен иметь родителя
     thread1 = new QThread(this);
-    connect(this, &Window_setting::call_request_passw, network_connection1, &Network_connection::check_http_connection);
-    connect(this, SIGNAL(destroyed()), thread1, SLOT(terminate()));
     thread1->start();
     network_connection1->moveToThread(thread1);
-    //Результат проверки интернет соединения
-    connect(network_connection1, &Network_connection::failure_internet_connection, this, &Window_setting::result_connection);
+    connect(thread1, &QThread::finished, thread1, &QThread::quit);
+    connect(thread1, &QThread::finished, thread1, &QThread::deleteLater);
 
-    //Результат ответ из базы данных паролей
-    connect(network_connection1, &Network_connection::response_mes_db, this, &Window_setting::response_from_db);
+    //Запуск проверки интернет-соединения
+    connect(this, &Window_setting::call_network_action, network_connection1, &Network_connection::check_http_connection, Qt::QueuedConnection);
+
+    //Результат проверки интернет соединения
+    connect(network_connection1, &Network_connection::failure_internet_connection, this, &Window_setting::result_connection, Qt::QueuedConnection);
+
+    //Результат проверки базы данных паролей
+    connect(network_connection1, &Network_connection::response_mes_db, this, &Window_setting::response_from_db, Qt::QueuedConnection);
 
     //Тестовое письмо на почту
-    connect(this, &Window_setting::call_test_message, network_connection1, &Network_connection::check_http_connection);
-    connect(network_connection1, &Network_connection::result_send_message, this, &Window_setting::result_confirmation_email);
+    connect(network_connection1, &Network_connection::result_send_message, this, &Window_setting::result_confirmation_email, Qt::QueuedConnection);
+
+    //Запрос данных для smtp-сервера
+    connect(network_connection1, &Network_connection::signal_smtp_data, this, &Window_setting::getDataForSmtp, Qt::QueuedConnection);
+    connect(this, &Window_setting::send_data_smtp, network_connection1, &Network_connection::getDataSmtp, Qt::QueuedConnection);
+
+    //Прогресс бар
+    progress_widget.setAlignment(Qt::AlignCenter);
+    progress_widget.setWindowFlags(Qt::WindowStaysOnTopHint);          //поверх окон
+    progress_widget.setWindowModality(Qt::ApplicationModal);           //модальность
+    progress_widget.setWindowFlags(Qt::FramelessWindowHint);           //отключаем обрамление окна виджета
+    progress_widget.setAttribute(Qt::WA_TranslucentBackground, true);  //Прозрачность
+    progress_widget.resize(150, 150);
+    movie = new QMovie(&progress_widget);
+    movie->setFileName(":/img/loading.gif");
+    movie->setScaledSize(progress_widget.size());
+    progress_widget.setMovie(movie);
+    //--------------------------------------------------------
+
     setWindowTitle(tr("Настройки приложения"));
-    setMinimumSize(650, 485);
-    setMaximumSize(650, 500);
-    resize(650, 500);
+    setMinimumSize(650, 525);
+    setMaximumSize(650, 600);
+    resize(650, 525);
 }
 
 Window_setting:: ~Window_setting()
-{
+{    
     delete  wait_widget;
+
+    thread1->quit();
+    thread1->wait();
+    thread1->deleteLater();
+    network_connection1->deleteLater();
+    delete network_connection1;
+    delete thread1;
+
+    delete horizontal_old_pas;
+    delete horizontal_new_pas;
+    delete horizontal_group;
+    delete vertical_qroup;
+    delete group_check_DB;
+    delete vertical_new_pas;
+    delete groupBox_new_pas;
+    delete horizontal_widg_gen;
+    delete horizontal_checkbox;
+    delete horizontal_button_sett;
+    delete vertical1;
+    delete Setting_window;
 }
 
-void Window_setting::save1()
+void Window_setting::read_settings()
 {
-    if (set_mail_authoriz==1 && permission_to_save==false)
+    enter_new_pas->setText(tr(""));
+    QString old_global_pas;
+    db = QSqlDatabase::database();
+    int check_mail = 0;
+    if(db.open())
     {
-        check_address_mail();       //Проверка корректности введённого email
+        QSqlQuery query;
+        QByteArray key, iv, text;
+        key = readDataSQL_settingTable(db, query, "main_key");
+        iv = readDataSQL_settingTable(db, query, "main_vector");
+        text = readDataSQL_settingTable(db, query, "master_pas");
+        old_global_pas = decryptAES(text, key, iv);
+        enter_old_pas->setText(old_global_pas);
+        enter_old_pas->setEchoMode(QLineEdit::Password);
+        enter_old_pas->setReadOnly(true);
+        enter_new_pas->setEchoMode(QLineEdit::Password);
 
+        address_mail_string = QString::fromLocal8Bit(readDataSQL_settingTable(db, query, "availability_email"));
+        check_mail = address_mail_string.toInt();
+        read_setting_mail(check_mail, address_mail_string);
+        if (check_mail == 1)
+        {
+            key = readDataSQL_settingTable(db, query, "key_mail");
+            iv = readDataSQL_settingTable(db, query, "vector_mail");
+            text = readDataSQL_settingTable(db, query, "address_email");
+            address_mail_string = decryptAES(text, key, iv);
+            read_setting_mail(check_mail, address_mail_string);
+        }
     }
     else
-        permission_to_save=true;
-
-    if (permission_to_save)
     {
-        permission_to_save=false;
-        emit save_main_password();
-        QMessageBox* info_msg = new QMessageBox(QMessageBox::Information,
-                                  tr("Информация!"),
-                                  tr("Данные успешно сохранены!"));
-        if (info_msg->exec()==QMessageBox::Ok)
-        {delete info_msg;}
+        enter_old_pas->setText(tr("12345"));
+        enter_old_pas->setReadOnly(true);
+        dialog_message();
     }
 }
 
-void Window_setting::cancel1()
+void Window_setting::save_password()
+{
+    QString old_global_pas = enter_old_pas->text();       //Чтение старого пароля
+    QString new_global_pas = enter_new_pas->text();       //чтение нового пароля
+    QByteArray key, vector, master_pas;
+    generateKey(key, vector);
+
+    if (db.open()) {
+        QSqlQuery query;
+        if (!new_global_pas.isEmpty() && old_global_pas.isEmpty()) {
+            master_pas = encryptAES(new_global_pas, key, vector);
+            writeDataSQL_settingTable(db, query, 4, "main_key", key);
+            writeDataSQL_settingTable(db, query, 5, "main_vector", vector);
+            writeDataSQL_settingTable(db, query, 6, "master_pas", master_pas);
+            enter_old_pas->setText(new_global_pas);
+            enter_old_pas->setReadOnly(true);
+        }
+
+        if (new_global_pas.isEmpty() && old_global_pas.isEmpty()) {
+            new_global_pas = "12345";
+            master_pas = encryptAES(new_global_pas, key, vector);
+            writeDataSQL_settingTable(db, query, 4, "main_key", key);
+            writeDataSQL_settingTable(db, query, 5, "main_vector", vector);
+            writeDataSQL_settingTable(db, query, 6, "master_pas", master_pas);
+            enter_old_pas->setText(new_global_pas);
+            enter_old_pas->setReadOnly(true);
+        }
+
+        if (!new_global_pas.isEmpty() && !old_global_pas.isEmpty()) {
+            if (new_global_pas!=old_global_pas) {
+                master_pas = encryptAES(new_global_pas, key, vector);
+                writeDataSQL_settingTable(db, query, 4, "main_key", key);
+                writeDataSQL_settingTable(db, query, 5, "main_vector", vector);
+                writeDataSQL_settingTable(db, query, 6, "master_pas", master_pas);
+                enter_old_pas->setText(new_global_pas);
+                enter_old_pas->setReadOnly(true);
+            }
+        }
+    }
+    else {
+        dialog_message();
+    }
+}
+
+void Window_setting::save_mail_status()
+{
+    if (change_status_mail==true)
+    {
+        QByteArray check_mail= "0";
+        QByteArray address = "";
+        if (db.open())
+        {
+            QSqlQuery query;
+            check_mail = "0";
+            writeDataSQL_settingTable(db, query, 7, "availability_email", check_mail);
+            writeDataSQL_settingTable(db, query, 10, "address_email", address);
+            change_status_mail = false;
+        }
+        else
+        {
+            dialog_message();
+        }
+    }
+}
+
+void Window_setting::save_mail()
+{
+    QString address = enter_address_mail->text();
+    QByteArray key, vector, address_mail, check_mail;
+    generateKey(key, vector);
+    address_mail = encryptAES(address, key, vector);
+    if (db.open())
+    {
+        QSqlQuery query;
+        check_mail = "1";
+        writeDataSQL_settingTable(db, query, 7, "availability_email", check_mail);
+        writeDataSQL_settingTable(db, query, 8, "key_mail", key);
+        writeDataSQL_settingTable(db, query, 9, "vector_mail", vector);
+        writeDataSQL_settingTable(db, query, 10, "address_email", address_mail);
+        address_mail_string = address;
+        change_status_mail = false;
+    }
+    else
+    {
+        dialog_message();
+    }
+}
+
+void Window_setting::save()
+{
+    progress_widget.show();
+    movie->start();
+    QApplication::processEvents(QEventLoop::AllEvents);
+    if (check_box_for_email->isChecked())
+    {
+        if (address_mail_string != enter_address_mail->text()) {
+            check_address_mail(enter_address_mail->text());
+        }
+        if (address_mail_string == enter_address_mail->text()) {
+            save_password();
+        }
+    }
+    else
+    {
+        save_mail_status();
+        save_password();
+    }
+    movie->stop();
+    progress_widget.close();
+}
+
+void Window_setting::cancel()
 {
     this ->close();
 }
 
-void Window_setting::show1()
-{
-    emit show_main_password();
-}
-
-void Window_setting::write_global_setting(QDataStream* arg_stream)
-{
-    double setting_mail_authoriz=0;
-    setting_mail_authoriz=static_cast<double>(set_mail_authoriz);
-    *arg_stream << (setting_mail_authoriz);
-    address_mail_string = enter_address_mail->text();       //чтение введённого адреса почты
-    if (!address_mail_string.isEmpty() or set_mail_authoriz==1)
-    {
-        write_data(arg_stream, address_mail_string);
-    }
-    old_global_pas = enter_old_pas->text();       //Чтение старого пароля
-    if (old_global_pas!=new_global_pas and !new_global_pas.isEmpty())
-    {
-        new_global_pas=enter_new_pas->text();
-    }
-    else if (!old_global_pas.isEmpty() and new_global_pas.isEmpty())
-    {
-        new_global_pas=old_global_pas;
-    }
-    else if (old_global_pas.isEmpty())
-    {
-        old_global_pas=tr("12345");
-        new_global_pas=old_global_pas;
-    }
-    write_data(arg_stream, new_global_pas);
-}
-
-void Window_setting::read_global_setting(QDataStream* arg_stream)
-{
-    double setting_mail_authoriz=0;
-    *arg_stream >> (setting_mail_authoriz);
-    set_mail_authoriz=static_cast<int>(setting_mail_authoriz);
-    if (!address_mail_string.isEmpty() or set_mail_authoriz==1)
-    {
-    address_mail_string=read_data(arg_stream, address_mail_string);
-    enter_address_mail->setText(address_mail_string);
-    }
-    old_global_pas=read_data(arg_stream, old_global_pas);
-    enter_old_pas->setText(old_global_pas);                             //Запись как текущего пароля
-    enter_old_pas->setReadOnly(true);                                   //Блокировка ввода
-
-}
-
-void Window_setting::otherwise_global_setting()
-{
-    enter_address_mail->clear();
-    old_global_pas = (tr("12345"));                                     //Если файла нет в текущей директории, записываем стандартный пароль
-    enter_old_pas->setText(old_global_pas);
-    enter_new_pas->setText(old_global_pas);
-    enter_old_pas->setReadOnly(true);
-}
-
-QString Window_setting::read_data(QDataStream* arg_stream, QString str)
-{
-    str.clear();
-    double temp_arr[300];                                               //промежуточный массив double
-    for (int i=0; i<300; i++)                                           //Первоначальная инициализация всего массива
-    {temp_arr[i]=0;}
-    int size_str=My_Encrytion::read_data(arg_stream, temp_arr);         //чтение
-    My_Encrytion::reverse_shuffle_data(temp_arr, size_str, 8);          //вызов функции обратного перемешивания
-    str=My_Encrytion::decrypt(temp_arr, str, size_str);                 //расшифровка инвертированной математической функцией
-    return str;
-}
-
-void Window_setting::write_data(QDataStream* arg_stream, QString str)
-{
-    double temp_arr[300];                                               //промежуточный массив double
-    for (int i=0; i<300; i++)                                           //Первоначальная инициализация всего массива
-    {temp_arr[i]=0;}
-    My_Encrytion::encrypt(str, temp_arr);                               //Шифрование математической функцией
-    My_Encrytion::shuffle_data(temp_arr, str.size(), 8);                //вызов функции перемешивания
-    My_Encrytion::write_data(arg_stream, temp_arr, str.size());         //запись
-}
-
 bool Window_setting::eventFilter(QObject *obj, QEvent *event)   //Фильтр событий
-
 {
     if (event->type() == QEvent::FocusIn)   //Если выбранный объект в фокусе (т.е. если например QLineEdit выбран для ввода)
                 {
                     enter_new_pas->setToolTip(tr("Введите новый пароль длиной не менее 12 символов и сохраните его. \r\n Используйте символы, русские и английские буквы верхнего и нижних регистров, числа"));
-                    new_global_pas=enter_new_pas->text();
                     difficult_of_passw();
                     return false;
                 }
     else if (event->type() == QEvent::FocusOut)    //Если объект не в фокусе (выбран другой объект в этом виджете)
                 {
-                    new_global_pas=enter_new_pas->text();
                     label_difficult_passw->setText("<img src=':/img/emptiness2.png'>");
                     return QObject::eventFilter(obj, event);
                 }
     else return QObject::eventFilter(obj, event);
-
 }
 
 void Window_setting::difficult_of_passw()
@@ -365,7 +476,7 @@ void Window_setting::difficult_of_passw()
             label_difficult_passw->clear();
             label_difficult_passw->setText("<img src=':/img/bad_pas2.png'>");
         }
-        //Сюда вставим проверку пароля на повторяющиеся символы или цифры и будем выводить сообщение об этом
+        //проверка пароля на повторяющиеся символы или цифры и будем выводить сообщение об этом
         if (repeating_sequence(enter_pas))
         {
             label_difficult_passw->clear();
@@ -404,9 +515,11 @@ bool Window_setting::repeating_sequence(QString enter_string)
         return false;
 }
 
-
 void Window_setting::gen_master_passw()
 {
+    if (enter_new_pas->text().isEmpty() or QLineEdit::Password == enter_new_pas->echoMode())
+        enter_new_pas->setEchoMode(QLineEdit::Password);
+
     enter_new_pas->setText(password_generator());
 }
 
@@ -419,7 +532,6 @@ QString Window_setting::password_generator()
     int number_symbol=0;          //количество символов
     int number_digits=0;          //количество цифр
     int number_spec_symbol=0;     //количество спец. символов
-
 
     //Определение позиции элементов
     counter_position=0;
@@ -486,25 +598,18 @@ QString Window_setting::password_generator()
     {
         generated_password[i]=QChar(gen_symbol[i]);
     }
-
     return generated_password;
 }
 
 void Window_setting::slot_request_pas()
 {
-    QString passw=enter_new_pas->text();
-    emit  call_request_passw("request_dataBase:"+passw);
+    emit call_network_action("request_db", enter_new_pas->text(), "");
 }
-
 
 void Window_setting::result_connection(QString str)
 {
-    int position=0;
-    for (int i=0; i<str.size(); i++)
-        position=str.indexOf("\n");
-    str.remove(position-1, str.size());
     wait_widget->close();
-    QMessageBox* error_msg1 = new QMessageBox(QMessageBox::Critical,"Ошибка!",str+"!");
+    QMessageBox* error_msg1 = new QMessageBox(QMessageBox::Critical,"Ошибка!",str);
     if (error_msg1->exec()==QMessageBox::Ok)
     {delete error_msg1;}
 }
@@ -518,18 +623,18 @@ void Window_setting::result_confirmation_email(QString str)
 {
     if (str==tr("Письмо успешно отправлено!"))
     {
-        permission_to_save=true;
         wait_widget->close();
-        save1();
+        save_mail();
+        save_password();
     }
     else
     {
-        permission_to_save=false;
         QMessageBox* critical_msg = new QMessageBox(QMessageBox::Critical,
                                   tr("Ошибка!"),
                                   tr("Некорректный адрес email! <br>Сохранение данных приложения не выполнено!"));
         if (critical_msg->exec()==QMessageBox::Ok)
         {delete critical_msg;}
+        wait_widget->close();
     }
 }
 
@@ -544,14 +649,14 @@ void Window_setting::slot_check_size_line()
     }
 }
 
-void Window_setting:: visible_check()
+void Window_setting:: visible_checkbox()
 {
     if (check_box_for_email->isChecked())   //and already_checked==true
     {
         label_email->setVisible(true);
         label_email->setText(tr("Введите адрес электронной почты:"));
         enter_address_mail->setVisible(true);
-        set_mail_authoriz=1;
+        change_status_mail = true;
     }
     else
     {
@@ -559,13 +664,21 @@ void Window_setting:: visible_check()
         label_email->setFixedHeight(24);
         label_email->setText("                      ");
         enter_address_mail->setVisible(false);
-        set_mail_authoriz=0;
+        change_status_mail = true;
     }
 }
 
-void Window_setting:: read_setting_mail()
+void Window_setting:: read_setting_mail(int& setting_mail, QString& address_mail)
 {
-    if  (set_mail_authoriz==0)
+    if (setting_mail==1)
+    {
+        label_email->setVisible(true);
+        label_email->setText(tr("Введите адрес электронной почты:"));
+        enter_address_mail->setVisible(true);
+        enter_address_mail->setText(address_mail);
+        check_box_for_email->setChecked(true);
+    }
+    else
     {
         label_email->clear();
         label_email->setFixedHeight(24);
@@ -573,30 +686,21 @@ void Window_setting:: read_setting_mail()
         enter_address_mail->setVisible(false);
         check_box_for_email->setChecked(false);
     }
-    else if (set_mail_authoriz==1)
-    {
-        label_email->setVisible(true);
-        label_email->setText(tr("Введите адрес электронной почты:"));
-        enter_address_mail->setVisible(true);
-        check_box_for_email->setChecked(true);
-    }
 }
 
-void Window_setting::check_address_mail()
+void Window_setting::check_address_mail(QString address)
 {
     bool false_address=false;
     int position_symbol=0;
     QString local_part;
     QString domain_part;
-    QString str=enter_address_mail->text();
-    if (str.isEmpty())
+    if (address.isEmpty())
     {
         QMessageBox* critical_msg = new QMessageBox(QMessageBox::Critical,
                                   tr("Внимание!"),
                                   tr("Введите адрес электронной почты!"));
         if (critical_msg->exec()==QMessageBox::Ok)
         {delete critical_msg;}
-        permission_to_save=false;
     }
     else
     {
@@ -606,31 +710,31 @@ void Window_setting::check_address_mail()
 
         //не должно быть >1 символа @
         int counter_at=0;
-        for (int i=0; i<str.size(); i++)
+        for (int i=0; i<address.size(); i++)
         {
-            if (str[i]=="@")
+            if (address[i]=="@")
                 counter_at++;
         }
         if (counter_at>1)
             false_address=true;
 
-        position_symbol=str.indexOf("@", Qt::CaseInsensitive);
+        position_symbol=address.indexOf("@", Qt::CaseInsensitive);
         if (position_symbol==-1)
         {
             false_address=true;
         }
        else
         {
-            local_part=str;
-            local_part.remove(position_symbol,str.size());
-            domain_part=str;
+            local_part=address;
+            local_part.remove(position_symbol, address.size());
+            domain_part=address;
             domain_part.remove(0,position_symbol+1);
         }
-        /*Если перед @ нет хотя бы 2-ух символов, то такой адрес email могут
+        /*Если перед @ нет хотя бы 3-ух символов, то такой адрес email могут
         * распознать не все почтовые серверы, даже если такой адрес действительно существует
         * Поэтому выполним проверку на длину "local part"  *
         * также local part не должно превышать 255 символов*/
-        if (local_part.size()<=2 or local_part.size()>=255)
+        if (local_part.size()<3 or local_part.size()>=255)
             false_address=true;
 
         //убираем пробелы и табуляции в конце "domain part"
@@ -643,7 +747,7 @@ void Window_setting::check_address_mail()
         }
         domain_part=temp;
         //"domain part" не должна быть длиннее 64 символов. Установим ещё что не короче 5, т.к. не все почтовые сервисы примут
-        if (domain_part.size()<=4 or domain_part.size()>=64)
+        if (domain_part.size()<4 or domain_part.size()>=64)
             false_address=true;
 
         if (false_address)
@@ -653,16 +757,74 @@ void Window_setting::check_address_mail()
                                       tr("Адрес электронной почты введён некорректно!"));
             if (critical_msg->exec()==QMessageBox::Ok)
             {delete critical_msg;}
-            permission_to_save=false;
         }
         else
         {
             enter_address_mail->setText(local_part+"@"+domain_part);
-            str=local_part+"@"+domain_part;
+            address=local_part+"@"+domain_part;
             wait_widget->show();
-            emit call_test_message("mail:"+str);
-
+            emit call_network_action("test_message", address, "");
         }
     }
 }
 
+void Window_setting::getDataForSmtp()
+{
+    if (db.open())
+    {
+        QSqlQuery query;
+        QByteArray ByteLogin, BytePassw, key_smtp, iv_smtp;
+        QString login, passw;
+        key_smtp = readDataSQL_settingTable(db, query, "key_smtp");
+        iv_smtp = readDataSQL_settingTable(db, query, "vector_smtp");
+        ByteLogin = readDataSQL_settingTable(db, query, "login_smtp");
+        BytePassw = readDataSQL_settingTable(db, query, "smtp_pas");
+        login = decryptAES(ByteLogin, key_smtp, iv_smtp);
+        passw = decryptAES(BytePassw, key_smtp, iv_smtp);
+        passw.replace(" ", "");
+        emit send_data_smtp(login, passw);
+    }
+    else
+    {
+        dialog_message();
+    }
+}
+
+void Window_setting::dialog_message()
+{
+    QMessageBox* msg = new QMessageBox(QMessageBox::Critical, tr("Ошибка!"), (tr("Вставьте USB-ключ!")));
+    if (msg->exec()==QMessageBox::Ok)
+    {delete msg;}
+}
+
+void Window_setting::changeVisibleOld_pas()
+{
+    if (QLineEdit::Password == enter_old_pas->echoMode())
+    {
+        visibleOldPas->setIcon(QIcon(":/img/open_lock.png"));
+        visibleOldPas->setIconSize(QSize(26,26));
+        enter_old_pas->setEchoMode(QLineEdit::Normal);
+    }
+    else
+    {
+        visibleOldPas->setIcon(QIcon(":/img/closed_lock.png"));
+        visibleOldPas->setIconSize(QSize(26,26));
+        enter_old_pas->setEchoMode(QLineEdit::Password);
+    }
+}
+
+void Window_setting::changeVisibleNew_pas()
+{
+    if (QLineEdit::Password == enter_new_pas->echoMode())
+    {
+        visibleNewPas->setIcon(QIcon(":/img/open_lock.png"));
+        visibleNewPas->setIconSize(QSize(26,26));
+        enter_new_pas->setEchoMode(QLineEdit::Normal);
+    }
+    else
+    {
+        visibleNewPas->setIcon(QIcon(":/img/closed_lock.png"));
+        visibleNewPas->setIconSize(QSize(26,26));
+        enter_new_pas->setEchoMode(QLineEdit::Password);
+    }
+}
