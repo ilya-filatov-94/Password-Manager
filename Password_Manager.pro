@@ -4,15 +4,16 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-VERSION = 2.0.0.1
+VERSION = 3.0.0.1
 QMAKE_TARGET_COMPANY = Filatov Corp
 QMAKE_TARGET_PRODUCT = Password Manager
 QMAKE_TARGET_DESCRIPTION = Password Manager
 QMAKE_TARGET_COPYRIGHT = Ilya Filatov
+
 
 TARGET = Password_Manager
 TEMPLATE = app
@@ -30,13 +31,15 @@ DEFINES += SMTP_BUILD
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++11
+include($$PWD/Qt-Secret/Qt-Secret.pri)
+
+CONFIG += c++17
 
 SOURCES += \
         client_window.cpp \
+        datamanagement.cpp \
         main.cpp \
         mainwindow.cpp \
-        my_encryption.cpp \
         network_connection.cpp \
         smtp/emailaddress.cpp \
         smtp/mimeattachment.cpp \
@@ -55,8 +58,8 @@ SOURCES += \
 
 HEADERS += \
         client_window.h \
+        datamanagement.h \
         mainwindow.h \
-        my_encryption.h \
         network_connection.h \
         smtp/SmtpMime \
         smtp/emailaddress.h \
