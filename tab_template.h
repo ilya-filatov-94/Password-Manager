@@ -1,119 +1,139 @@
 #ifndef TAB_TEMPLATE_H
 #define TAB_TEMPLATE_H
 
+#include "datamanagement.h"
+
+#include <QApplication>
+#include <QClipboard>
+#include <QMimeData>
+#include <QTimer>
+
 #include <QMainWindow>
-#include <QtWidgets>
+#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QString>
-#include <QLabel>
-#include <QSettings>
-#include <QRandomGenerator64>
 #include <QBoxLayout>
-#include <QDataStream>
-#include "my_encryption.h"
-
-#include <QPixmap>
-#include <QPalette>
+#include <QPixmap>          //для создания объекта изображения
 #include <QImage>
-#include <QBrush>
+#include <QShortcut>
+#include <QKeySequence>
 
-class Tab_template : public QMainWindow, My_Encrytion
 
+class Tab_template : public QMainWindow, protected DataManagement
 {
     Q_OBJECT
 
 public:
-    Tab_template();
-    int counter1;           //счётчик изменения видимости пароля 1
-    int counter2;           //счётчик изменения видимости пароля 1
+    explicit Tab_template(QWidget *parent=nullptr);
     ~Tab_template() override;
 
-protected:
-      void resizeEvent(QResizeEvent*) override;
+    void read_data_tab(QSqlDatabase&, int);                    //метод чтения данных
+    void write_data_tab(QSqlDatabase&, int);                   //метод записи данных
+    //void delete_data_tab(QSqlDatabase&, int);                  //метод удаления данных
+    bool get_flag_change_tab();                                //Проверка для Client_window были ли изменения данных на вкладках
+    void save_tab_change(QSqlDatabase&, int);                  //сохраняет данные вкладок у которых флаг изменения true
 
-public slots:
-
-    void write_regedit(QSettings*, int, int, int);  //Запись данных в реестр
-    void read_regedit(QSettings*, int);             //Чтение данных их реестра
-    void delete_regedit(QSettings*, int);           //Удаление данных в реестре
-    void write_data_tab(QDataStream*);              //Внешний метод класса - public
-    void read_data_tab(QDataStream*);               //Внешний метод класса - public
-    void otherwise_data_tab();
     QString get_name_resource1();
     QString get_name_resource2();
     void select_resource1();
     void select_resource2();
 
+
+private:
+
+    QWidget* widget;
+    bool dataChanged;                              //флаг изменения данных на вкладке
+    void setVisiblePas();
+    QString password_generator();
+
+    //виджеты 1-ой вкладки
+    int id_template_widget;
+    QWidget* templateWidget[6];
+    int fixedHeightTemplateWidget;
+    int fixedWidthNameResource;
+    int fixSizeLabel;
+    int fixSizeButton;
+    int id_horizontal_layout;
+    QHBoxLayout* horizontalWidget[6];
+
+    //Виджеты названия ресурса
+    QLabel* name_label1;
+    QLineEdit* name_resourse1;
+    QPushButton* btnCopyLogin1;
+
+    //Виджеты логина
+    QLabel* login_label1;
+    QLineEdit* login_line1;
+    QPushButton* btnCopyPassw1;/****/
+
+    //Виджеты пароля
+    QLabel* passw_label1;
+    QLineEdit* passw_line1;
+    QPushButton* gen_pas_button1;/***/
+    QPushButton* visiblePassw1;/****/
+    //------------------------
+
+    //Виджеты названия ресурса
+    QLabel* name_label2;
+    QLineEdit* name_resourse2;
+    QPushButton* btnCopyLogin2;
+
+    //Виджеты логина
+    QLabel* login_label2;
+    QLineEdit* login_line2;
+    QPushButton* btnCopyPassw2;
+
+    //Виджеты пароля
+    QLabel* passw_label2;
+    QLineEdit* passw_line2;
+    QPushButton* gen_pas_button2;
+    QPushButton* visiblePassw2;
+
+    //Кнопка сохранения данных на вкладке
+    QPushButton* save_change_page;
+    QVBoxLayout* verticalWidget;
+
+    //Для генерации пароля
+    static const int len_string=10;          //Длина пароля. При изменении длины генерируемого пароля поменять коэффициенты в методе, влияющие на кол-во символов, цифр в пароле
+    int array_position[len_string];          //массив с позициями элементов
+    int gen_elem_array_code[len_string];     //массив куда помещаются элементы пароля
+    int gen_symbol[len_string];              //генерируемый элемент
+    //Unicode коды
+    int code_latin_symbol [52] = {65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122};
+    int code_digits [10] = {48, 49, 50, 51, 52, 53, 54, 55, 56, 57};
+    int code_spec_symbol [32] = {33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 58, 59, 60, 61, 62, 63, 64, 91, 92, 93, 94, 95, 96, 123, 124, 125, 126};
+
+
+    //Для копирования в буфер обмена
+    QMimeData mime;
+    QTimer timer1_clipboard;
+    QTimer timer2_clipboard;
+    QTimer timer3_clipboard;
+    QTimer timer4_clipboard;
+
 private slots:
 
-    void visible_passw1();
-    void visible_passw2();
-    void write_change_tab();
+    void save_data_tab();
+    void slot_check_size_line();                    //проверка длины вводимого текста
+    void changeVisiblePas1();
+    void changeVisiblePas2();
     void generate_passw1();
     void generate_passw2();
-    void slot_check_size_line();        //проверка длины вводимого текста
+
+    void copy_login1();
+    void copy_passw1();
+    void copy_login2();
+    void copy_passw2();
+    void timeout1_clipboard();
+    void timeout2_clipboard();
+    void timeout3_clipboard();
+    void timeout4_clipboard();
 
 signals:
-    void save_page();
-private:
-   void visible_password_regedit();
-   void write_data(QDataStream*, QString);        //Внутренний метод класса - private
-   QString read_data(QDataStream*, QString);      //Внутренний метод класса - private
-   QString password_generator();                  //метод для генерации пароля
 
-   //Компоновка виджетов
-   int id_template_widget;
-   QWidget* templateWidget[6];
-   int fixedHeightTemplateWidget;
-   int fixedWidthNameResource;
-   int id_horizontal_layout;
-   QHBoxLayout* horizontalWidget[6];
-   QVBoxLayout* verticalWidget;
-
-   int fixWidthName;
-   int fixSizeLabel;
-   int fixSizeButton;
-
-   QWidget* widget;
-   QLabel* label_name_data1;
-   QLineEdit* name_data_entry1;
-   QLabel* label_login1;
-   QLineEdit* username_entry1;
-   QLabel* label_pas1;
-   QLineEdit* password_entry1;
-   QPushButton* gen_pas1;
-   QPushButton* visible_pas1;
-
-   QLabel* label_name_data2;
-   QLineEdit* name_data_entry2;
-   QLabel* label_login2;
-   QLineEdit* username_entry2;
-   QLabel* label_pas2;
-   QLineEdit* password_entry2;
-   QPushButton* gen_pas2;
-   QPushButton* visible_pas2;
-   QPushButton* save_change_page;
-
-   QString name_data_1;
-   QString username1;
-   QString password1;
-
-   QString name_data_2;
-   QString username2;
-   QString password2;
-
-   //Для генерации пароля
-   const int len_string=10;         //Длина пароля. При изменении длины генерируемого пароля поменять коэффициенты в методе, влияющие на кол-во символов, цифр в пароле
-   int array_position[10];          //массив с позициями элементов
-   int gen_elem_array_code[10];     //массив куда помещаются элементы пароля
-   int gen_symbol[10];              //генерируемый элемент
-
-   //Unicode коды
-   int code_latin_symbol [52] = {65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122};
-   int code_digits [10] = {48, 49, 50, 51, 52, 53, 54, 55, 56, 57};
-   int code_spec_symbol [32] = {33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 58, 59, 60, 61, 62, 63, 64, 91, 92, 93, 94, 95, 96, 123, 124, 125, 126};
+    void signal_save_tab();
 
 };
 
 #endif // TAB_TEMPLATE_H
+

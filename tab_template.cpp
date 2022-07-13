@@ -1,19 +1,14 @@
 #include "tab_template.h"
 
 
-
-Tab_template::Tab_template()
+Tab_template::Tab_template(QWidget *parent) : QMainWindow(parent)
 {
-    counter1=0;
-    counter2=0;
     widget= new QWidget(this);
 
     fixedHeightTemplateWidget = 40;     //Высота шаблонного виджета
     fixedWidthNameResource = 400;       //длина поля ввода имени ресурса
-    fixWidthName=507;                   //Длина шаблонного виджета поля ввода имени ресурса fixedWidthNameResource+107
     fixSizeLabel=90;                    //длина Qlabel
     fixSizeButton=195;                  //длина Qpushbutton
-
 
     //-----Шаблон виджета с вводом имени ресурса-----1
     id_template_widget=0;                                                   //ID шаблонного виджета
@@ -21,21 +16,23 @@ Tab_template::Tab_template()
     templateWidget[id_template_widget]->setObjectName("templateWidget1");   //Установим одно и тоже имя объекту чтобы применить QSS ко всем шаблонам
     id_horizontal_layout=0;                                                 //ID горизонтального layout для шаблонного виджета
     horizontalWidget[id_horizontal_layout] = new QHBoxLayout();
-    label_name_data1 = new QLabel(this);
-    label_name_data1->setText(tr("Имя ресурса"));
-    label_name_data1->setFixedWidth(fixSizeLabel);
-    name_data_entry1 = new QLineEdit(this);
-    name_data_entry1->setPlaceholderText(tr("Введите название ресурса"));
-    connect(name_data_entry1, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
-    name_data_entry1->setFixedWidth(fixedWidthNameResource);
+    name_label1 = new QLabel(this);
+    name_label1->setText(tr("Имя ресурса"));
+    name_label1->setFixedWidth(fixSizeLabel);
+    name_resourse1 = new QLineEdit(this);
+    name_resourse1->setPlaceholderText(tr("Введите название ресурса"));
+    connect(name_resourse1, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
+    btnCopyLogin1 = new QPushButton(this);
+    btnCopyLogin1->setText(tr("Копировать логин"));
+    btnCopyLogin1->setFixedWidth(fixSizeButton);
+    connect(btnCopyLogin1, SIGNAL(clicked()), this, SLOT(copy_login1()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
-    horizontalWidget[id_horizontal_layout]->addWidget(label_name_data1);
-    horizontalWidget[id_horizontal_layout]->addWidget(name_data_entry1);
+    horizontalWidget[id_horizontal_layout]->addWidget(name_label1);
+    horizontalWidget[id_horizontal_layout]->addWidget(name_resourse1);
+    horizontalWidget[id_horizontal_layout]->addWidget(btnCopyLogin1);
     templateWidget[id_template_widget]->setFixedHeight(fixedHeightTemplateWidget);
-    templateWidget[id_template_widget]->setFixedWidth(fixWidthName);
     templateWidget[id_template_widget]->setLayout(horizontalWidget[id_horizontal_layout]);
-
 
     //-------------Шаблон виджета с вводом логина------1
     id_template_widget+=1;
@@ -43,25 +40,24 @@ Tab_template::Tab_template()
     templateWidget[id_template_widget]->setObjectName("templateWidget1");
     id_horizontal_layout+=1;
     horizontalWidget[id_horizontal_layout] = new QHBoxLayout();
-    label_login1 = new QLabel(this);
-    label_login1->setText(tr("Логин"));
-    label_login1->setFixedWidth(fixSizeLabel);
-    username_entry1 = new QLineEdit(this);
-    username_entry1->setPlaceholderText(tr("Введите логин"));
-    connect(username_entry1, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
-    gen_pas1 = new QPushButton(this);
-    gen_pas1->setText(tr("Генерировать пароль"));
-    gen_pas1->setFixedWidth(fixSizeButton);
-    connect(gen_pas1, SIGNAL(clicked()), this, SLOT(generate_passw1()));
+    login_label1 = new QLabel(this);
+    login_label1->setText(tr("Логин"));
+    login_label1->setFixedWidth(fixSizeLabel);
+    login_line1 = new QLineEdit(this);
+    login_line1->setPlaceholderText(tr("Введите логин"));
+    connect(login_line1, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
+    btnCopyPassw1 = new QPushButton(this);
+    btnCopyPassw1->setText(tr("Копировать пароль"));
+    btnCopyPassw1->setFixedWidth(fixSizeButton);
+    connect(btnCopyPassw1, SIGNAL(clicked()), this, SLOT(copy_passw1()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
-    horizontalWidget[id_horizontal_layout]->addWidget(label_login1);
-    horizontalWidget[id_horizontal_layout]->addWidget(username_entry1);
-    horizontalWidget[id_horizontal_layout]->addWidget(gen_pas1);
+    horizontalWidget[id_horizontal_layout]->addWidget(login_label1);
+    horizontalWidget[id_horizontal_layout]->addWidget(login_line1);
+    horizontalWidget[id_horizontal_layout]->addWidget(btnCopyPassw1);/********/
     templateWidget[id_template_widget]->setLayout(horizontalWidget[id_horizontal_layout]);
     templateWidget[id_template_widget]->setFixedHeight(fixedHeightTemplateWidget);
     //--------------------------------------------------------------------------
-
 
     //-----Шаблон виджета с вводом пароля ресурса-----1
     id_template_widget+=1;
@@ -69,25 +65,32 @@ Tab_template::Tab_template()
     templateWidget[id_template_widget]->setObjectName("templateWidget1");
     id_horizontal_layout+=1;
     horizontalWidget[id_horizontal_layout] = new QHBoxLayout();
-    label_pas1 = new QLabel(this);
-    label_pas1->setText(tr("Пароль"));
-    label_pas1->setFixedWidth(fixSizeLabel);
-    password_entry1 = new QLineEdit(this);
-    password_entry1->setPlaceholderText(tr("Введите пароль"));
-    connect(password_entry1, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
-    visible_pas1 = new QPushButton(this);
-    visible_pas1->setText(tr("Скрыть/показать пароль"));
-    visible_pas1->setFixedWidth(fixSizeButton);
-    connect(visible_pas1, SIGNAL(clicked()), this, SLOT(visible_passw1()));
+    passw_label1 = new QLabel(this);
+    passw_label1->setText(tr("Пароль"));
+    passw_label1->setFixedWidth(fixSizeLabel);
+    passw_line1 = new QLineEdit(this);
+    passw_line1->setPlaceholderText(tr("Введите пароль"));
+    connect(passw_line1, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
+    visiblePassw1 = new QPushButton(this);
+    visiblePassw1->setIcon(QIcon(":/img/closed_lock.png"));
+    visiblePassw1->setIconSize(QSize(26,26));
+    visiblePassw1->setFixedHeight(26);
+    visiblePassw1->setFixedWidth(26);
+    visiblePassw1->setToolTip(tr("Изменение видимости пароля"));
+    connect(visiblePassw1, &QPushButton::clicked, this, &Tab_template::changeVisiblePas1);
+    gen_pas_button1 = new QPushButton(this);
+    gen_pas_button1->setText(tr("Генерировать пароль"));
+    gen_pas_button1->setFixedWidth(fixSizeButton);
+    connect(gen_pas_button1, SIGNAL(clicked()), this, SLOT(generate_passw1()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
-    horizontalWidget[id_horizontal_layout]->addWidget(label_pas1);
-    horizontalWidget[id_horizontal_layout]->addWidget(password_entry1);
-    horizontalWidget[id_horizontal_layout]->addWidget(visible_pas1);
+    horizontalWidget[id_horizontal_layout]->addWidget(passw_label1);
+    horizontalWidget[id_horizontal_layout]->addWidget(passw_line1);
+    horizontalWidget[id_horizontal_layout]->addWidget(visiblePassw1);
+    horizontalWidget[id_horizontal_layout]->addWidget(gen_pas_button1);
     templateWidget[id_template_widget]->setLayout(horizontalWidget[id_horizontal_layout]);
     templateWidget[id_template_widget]->setFixedHeight(fixedHeightTemplateWidget);
     //--------------------------------------------------------------------------
-
 
     //-----Шаблон виджета с вводом имени ресурса-----2
     id_template_widget+=1;
@@ -95,21 +98,23 @@ Tab_template::Tab_template()
     templateWidget[id_template_widget]->setObjectName("templateWidget1");
     id_horizontal_layout+=1;
     horizontalWidget[id_horizontal_layout] = new QHBoxLayout();
-    label_name_data2 = new QLabel(this);
-    label_name_data2->setText(tr("Имя ресурса"));
-    label_name_data2->setFixedWidth(fixSizeLabel);
-    name_data_entry2 = new QLineEdit(this);
-    name_data_entry2->setFixedWidth(fixedWidthNameResource);
-    name_data_entry2->setPlaceholderText(tr("Введите название ресурса"));
-    connect(name_data_entry2, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
+    name_label2 = new QLabel(this);
+    name_label2->setText(tr("Имя ресурса"));
+    name_label2->setFixedWidth(fixSizeLabel);
+    name_resourse2 = new QLineEdit(this);
+    name_resourse2->setPlaceholderText(tr("Введите название ресурса"));
+    connect(name_resourse2, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
+    btnCopyLogin2 = new QPushButton(this);
+    btnCopyLogin2->setText(tr("Копировать логин"));
+    btnCopyLogin2->setFixedWidth(fixSizeButton);
+    connect(btnCopyLogin2, SIGNAL(clicked()), this, SLOT(copy_login2()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
-    horizontalWidget[id_horizontal_layout]->addWidget(label_name_data2);
-    horizontalWidget[id_horizontal_layout]->addWidget(name_data_entry2);
+    horizontalWidget[id_horizontal_layout]->addWidget(name_label2);
+    horizontalWidget[id_horizontal_layout]->addWidget(name_resourse2);
+    horizontalWidget[id_horizontal_layout]->addWidget(btnCopyLogin2);
     templateWidget[id_template_widget]->setFixedHeight(fixedHeightTemplateWidget);
-    templateWidget[id_template_widget]->setFixedWidth(fixWidthName);
     templateWidget[id_template_widget]->setLayout(horizontalWidget[id_horizontal_layout]);
-
 
     //-------------Шаблон виджета с вводом логина------2
     id_template_widget+=1;
@@ -117,25 +122,24 @@ Tab_template::Tab_template()
     templateWidget[id_template_widget]->setObjectName("templateWidget1");
     id_horizontal_layout+=1;
     horizontalWidget[id_horizontal_layout] = new QHBoxLayout();
-    label_login2 = new QLabel(this);
-    label_login2->setText(tr("Логин"));
-    label_login2->setFixedWidth(fixSizeLabel);
-    username_entry2 = new QLineEdit(this);
-    username_entry2->setPlaceholderText(tr("Введите логин"));
-    connect(username_entry2, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
-    gen_pas2 = new QPushButton(this);
-    gen_pas2->setText(tr("Генерировать пароль"));
-    gen_pas2->setFixedWidth(fixSizeButton);
-    connect(gen_pas2, SIGNAL(clicked()), this, SLOT(generate_passw2()));
+    login_label2 = new QLabel(this);
+    login_label2->setText(tr("Логин"));
+    login_label2->setFixedWidth(fixSizeLabel);
+    login_line2 = new QLineEdit(this);
+    login_line2->setPlaceholderText(tr("Введите логин"));
+    connect(login_line2, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
+    btnCopyPassw2 = new QPushButton(this);
+    btnCopyPassw2->setText(tr("Копировать пароль"));
+    btnCopyPassw2->setFixedWidth(fixSizeButton);
+    connect(btnCopyPassw2, SIGNAL(clicked()), this, SLOT(copy_passw2()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
-    horizontalWidget[id_horizontal_layout]->addWidget(label_login2);
-    horizontalWidget[id_horizontal_layout]->addWidget(username_entry2);
-    horizontalWidget[id_horizontal_layout]->addWidget(gen_pas2);
+    horizontalWidget[id_horizontal_layout]->addWidget(login_label2);
+    horizontalWidget[id_horizontal_layout]->addWidget(login_line2);
+    horizontalWidget[id_horizontal_layout]->addWidget(btnCopyPassw2);
     templateWidget[id_template_widget]->setLayout(horizontalWidget[id_horizontal_layout]);
     templateWidget[id_template_widget]->setFixedHeight(fixedHeightTemplateWidget);
     //--------------------------------------------------------------------------
-
 
     //-----Шаблон виджета с вводом пароля ресурса-----2
     id_template_widget+=1;
@@ -143,24 +147,32 @@ Tab_template::Tab_template()
     templateWidget[id_template_widget]->setObjectName("templateWidget1");
     id_horizontal_layout+=1;
     horizontalWidget[id_horizontal_layout] = new QHBoxLayout();
-    label_pas2 = new QLabel(this);
-    label_pas2->setText(tr("Пароль"));
-    label_pas2->setFixedWidth(fixSizeLabel);
-    password_entry2 = new QLineEdit(this);
-    password_entry2->setPlaceholderText(tr("Введите пароль"));
-    connect(password_entry2, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
-    visible_pas2 = new QPushButton(this);
-    visible_pas2->setText(tr("Скрыть/показать пароль"));
-    visible_pas2->setFixedWidth(fixSizeButton);
-    connect(visible_pas2, SIGNAL(clicked()), this, SLOT(visible_passw2()));
+    passw_label2 = new QLabel(this);
+    passw_label2->setText(tr("Пароль"));
+    passw_label2->setFixedWidth(fixSizeLabel);
+    passw_line2 = new QLineEdit(this);
+    passw_line2->setPlaceholderText(tr("Введите пароль"));
+    connect(passw_line2, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
+    visiblePassw2 = new QPushButton(this);
+    visiblePassw2->setIcon(QIcon(":/img/closed_lock.png"));
+    visiblePassw2->setIconSize(QSize(26,26));
+    visiblePassw2->setFixedHeight(26);
+    visiblePassw2->setFixedWidth(26);
+    visiblePassw2->setToolTip(tr("Изменение видимости пароля"));
+    connect(visiblePassw2, &QPushButton::clicked, this, &Tab_template::changeVisiblePas2);
+    gen_pas_button2 = new QPushButton(this);
+    gen_pas_button2->setText(tr("Генерировать пароль"));
+    gen_pas_button2->setFixedWidth(fixSizeButton);
+    connect(gen_pas_button2, SIGNAL(clicked()), this, SLOT(generate_passw2()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
-    horizontalWidget[id_horizontal_layout]->addWidget(label_pas2);
-    horizontalWidget[id_horizontal_layout]->addWidget(password_entry2);
-    horizontalWidget[id_horizontal_layout]->addWidget(visible_pas2);
+    horizontalWidget[id_horizontal_layout]->addWidget(passw_label2);
+    horizontalWidget[id_horizontal_layout]->addWidget(passw_line2);
+    horizontalWidget[id_horizontal_layout]->addWidget(visiblePassw2);
+    horizontalWidget[id_horizontal_layout]->addWidget(gen_pas_button2);
     templateWidget[id_template_widget]->setLayout(horizontalWidget[id_horizontal_layout]);
     templateWidget[id_template_widget]->setFixedHeight(fixedHeightTemplateWidget);
-    //--------------------------------------------------------------------------
+    //----------------------------------------------------------------------------------------
 
     //Компоновка всех виджетов
     verticalWidget = new QVBoxLayout();
@@ -176,225 +188,344 @@ Tab_template::Tab_template()
     verticalWidget->addStretch(2);
     save_change_page = new QPushButton(this);
     save_change_page->setText(tr("Сохранить изменения"));
-    connect(save_change_page, SIGNAL(clicked()), this, SLOT(write_change_tab()));
+    connect(save_change_page, &QPushButton::clicked, this, &Tab_template::save_data_tab);
+
     save_change_page->setFixedWidth(fixSizeButton);
     verticalWidget->addWidget(save_change_page);
     verticalWidget->setAlignment(save_change_page, Qt::AlignRight);
     verticalWidget->addStretch(1);
 
     widget->setLayout(verticalWidget);
+
+    QFont font3("Times", 14, QFont::Normal);       //параметры шрифта для наименований вкладок
+    widget->setFont(font3);
+
+    //Таймеры буфера обмена
+    connect(&timer1_clipboard, &QTimer::timeout, this, &Tab_template::timeout1_clipboard);
+    connect(&timer2_clipboard, &QTimer::timeout, this, &Tab_template::timeout2_clipboard);
+    connect(&timer3_clipboard, &QTimer::timeout, this, &Tab_template::timeout3_clipboard);
+    connect(&timer4_clipboard, &QTimer::timeout, this, &Tab_template::timeout4_clipboard);
+
     setCentralWidget(widget);
-    setMinimumSize(500, 450);
+    setMinimumSize(500, 525);
     resize(900, 700);
 }
 
 Tab_template:: ~Tab_template()
 {
+    for (int i=0; i<6; i++)
+    {delete horizontalWidget[i];}
+    delete verticalWidget;
+    delete widget;
 }
 
-void Tab_template::visible_passw1()
-{
-    counter1++;
-    if (counter1 %2 == 0)
-        {password_entry1->setEchoMode(QLineEdit::Normal);}
-    else
-        {password_entry1->setEchoMode(QLineEdit::Password);}
-}
-
-void Tab_template::visible_passw2()
-{
-    counter2++;
-    if (counter2 %2 == 0)
-        {password_entry2->setEchoMode(QLineEdit::Normal);}
-    else
-        {password_entry2->setEchoMode(QLineEdit::Password);}
-}
-
-void Tab_template::visible_password_regedit()
-{
-    if (password1==tr("Введите пароль"))
-        password_entry1->setEchoMode(QLineEdit::Normal);
-    else if (counter1 %2 != 0)
-        password_entry1->setEchoMode(QLineEdit::Password);
-    else
-        password_entry1->setEchoMode(QLineEdit::Normal);
-
-    if (password2==tr("Введите пароль"))
-        password_entry2->setEchoMode(QLineEdit::Normal);
-    else if (counter2 %2 != 0)
-        password_entry2->setEchoMode(QLineEdit::Password);
-    else
-        password_entry2->setEchoMode(QLineEdit::Normal);
-}
-
-void Tab_template::write_regedit(QSettings* set, int counter1, int counter2, int counter)
-{
-     set->setValue(QString("visible_label%1").arg(QString::number(counter)), counter1);         //visible_label1 со значением counter1
-     set->setValue(QString("visible_label%1").arg(QString::number(counter+100)), counter2);     //visible_label101 со значением counter2
-}
-
-void Tab_template::read_regedit(QSettings* set, int counter)
-{
-     counter1=set->value(QString("visible_label%1").arg(QString::number(counter))).toInt();
-     counter2=set->value(QString("visible_label%1").arg(QString::number(counter+100))).toInt();
-     visible_password_regedit();
-}
-
-void Tab_template::delete_regedit(QSettings* set, int counter)
-{
-    set->remove(QString("visible_label%1").arg(QString::number(counter)));
-    set->remove(QString("visible_label%1").arg(QString::number(counter+100)));
-}
-
-void Tab_template::write_change_tab()
-{
-    emit save_page();
-}
-
-void Tab_template::write_data_tab(QDataStream* arg_stream)
-{
-    name_data_1=name_data_entry1->text();
-    write_data(arg_stream, name_data_1);
-
-    username1=username_entry1->text();
-    write_data(arg_stream, username1);
-
-    password1=password_entry1->text();
-    write_data(arg_stream, password1);
-
-    name_data_2=name_data_entry2->text();
-    write_data(arg_stream, name_data_2);
-
-    username2=username_entry2->text();
-    write_data(arg_stream, username2);
-
-    password2=password_entry2->text();
-    write_data(arg_stream, password2);
-
-}
-
-void Tab_template::read_data_tab(QDataStream* arg_stream)
-{
-    name_data_1=read_data(arg_stream, name_data_1);
-    name_data_entry1->setText(name_data_1);
-    if (name_data_1.isEmpty())
-        name_data_entry1->setPlaceholderText(tr("Введите название ресурса"));
-
-    username1=read_data(arg_stream, username1);
-    username_entry1->setText(username1);
-    if (username1.isEmpty())
-        username_entry1->setPlaceholderText(tr("Введите логин"));
-
-    password1=read_data(arg_stream, password1);
-    password_entry1->setText(password1);
-    if (password1.isEmpty())
-        password_entry1->setPlaceholderText(tr("Введите пароль"));
-
-    name_data_2=read_data(arg_stream, name_data_2);
-    name_data_entry2->setText(name_data_2);
-    if (name_data_2.isEmpty())
-        name_data_entry2->setPlaceholderText(tr("Введите название ресурса"));
-
-    username2=read_data(arg_stream, username2);
-    username_entry2->setText(username2);
-    if (username2.isEmpty())
-        username_entry2->setPlaceholderText(tr("Введите логин"));
-
-    password2=read_data(arg_stream, password2);
-    password_entry2->setText(password2);
-    if (password2.isEmpty())
-        password_entry2->setPlaceholderText(tr("Введите пароль"));
-}
-
-void Tab_template::write_data(QDataStream* arg_stream, QString str)
-{
-    double temp_arr[300];                                               //промежуточный массив double
-    for (int i=0; i<300; i++)                                           //Первоначальная инициализация всего массива
-    {temp_arr[i]=0;}
-    My_Encrytion::encrypt(str, temp_arr);                               //Шифрование математической функцией
-    My_Encrytion::shuffle_data(temp_arr, str.size(), 8);                //вызов функции перемешивания
-    My_Encrytion::write_data(arg_stream, temp_arr, str.size());         //запись
-}
-
-QString Tab_template::read_data(QDataStream* arg_stream, QString str)
-{
-    str.clear();
-    double temp_arr[300];                                               //промежуточный массив double
-    for (int i=0; i<300; i++)                                           //Первоначальная инициализация всего массива
-    {temp_arr[i]=0;}
-    int size_str=My_Encrytion::read_data(arg_stream, temp_arr);         //чтение
-    My_Encrytion::reverse_shuffle_data(temp_arr, size_str, 8);          //вызов функции обратного перемешивания
-    str=My_Encrytion::decrypt(temp_arr, str, size_str);                 //расшифровка инвертированной математической функцией
-    return str;
-}
-
-void Tab_template::otherwise_data_tab()
-{
-    name_data_entry1->setPlaceholderText(tr("Введите название ресурса"));
-    username_entry1->setPlaceholderText(tr("Введите логин"));
-    password_entry1->setPlaceholderText(tr("Введите пароль"));
-
-    name_data_entry2->setPlaceholderText(tr("Введите название ресурса"));
-    username_entry2->setPlaceholderText(tr("Введите логин"));
-    password_entry2->setPlaceholderText(tr("Введите пароль"));
-}
-
-//Ограничение длины вводимых строк до 300 символов
 void Tab_template::slot_check_size_line()
 {
-    QString str=tr(""); //инициализация
-    if ((name_data_entry1->hasFocus())==true)
+    QString str=tr("");
+    if ((name_resourse1->hasFocus())==true)
     {
-        str=name_data_entry1->text();
+        str=name_resourse1->text();
         str.truncate(300);
-        name_data_entry1->setText(str);
+        name_resourse1->setText(str);
     }
 
-    if ((username_entry1->hasFocus())==true)
+    if ((login_line1->hasFocus())==true)
     {
-        str=username_entry1->text();
+        str=login_line1->text();
         str.truncate(300);
-        username_entry1->setText(str);
+        login_line1->setText(str);
     }
 
-    if ((password_entry1->hasFocus())==true)
+    if ((passw_line1->hasFocus())==true)
     {
-        str=password_entry1->text();
+        str=passw_line1->text();
         str.truncate(300);
-        password_entry1->setText(str);
+        passw_line1->setText(str);
     }
 
-    if ((name_data_entry2->hasFocus())==true)
+    if ((name_resourse2->hasFocus())==true)
     {
-        str=name_data_entry2->text();
+        str=name_resourse2->text();
         str.truncate(300);
-        name_data_entry2->setText(str);
+        name_resourse2->setText(str);
     }
 
-    if ((username_entry2->hasFocus())==true)
+    if ((login_line2->hasFocus())==true)
     {
-        str=username_entry2->text();
+        str=login_line2->text();
         str.truncate(300);
-        username_entry2->setText(str);
+        login_line2->setText(str);
     }
 
-    if ((password_entry2->hasFocus())==true)
+    if ((passw_line2->hasFocus())==true)
     {
-        str=password_entry2->text();
+        str=passw_line2->text();
         str.truncate(300);
-        password_entry2->setText(str);
+        passw_line2->setText(str);
+    }
+    dataChanged = true;
+}
+
+void Tab_template::save_data_tab()
+{
+    emit signal_save_tab();
+}
+
+void Tab_template::read_data_tab(QSqlDatabase& db, int index_tab)
+{
+    QSqlQuery query;
+    QString name, login, pas;
+    if (readDataSQL(db, query, (index_tab*2+1), name, login, pas))
+    {
+        name_resourse1->setText(name);
+        login_line1->setText(login);
+        passw_line1->setText(pas);
+    }
+
+    if (readDataSQL(db, query, (index_tab*2+2), name, login, pas))
+    {
+        name_resourse2->setText(name);
+        login_line2->setText(login);
+        passw_line2->setText(pas);
+    }
+    setVisiblePas();
+    dataChanged = false;    //инициализация флага после чтения данных вкладок
+}
+
+void Tab_template::write_data_tab(QSqlDatabase& db, int index_tab)
+{
+    QSqlQuery query;
+    QString name, login, pas;
+    name = name_resourse1->text();
+    login = login_line1->text();
+    pas = passw_line1->text();
+
+    writeDataSQL(db, query, (index_tab*2+1), name, login, pas);
+
+    name = name_resourse2->text();
+    login = login_line2->text();
+    pas = passw_line2->text();
+
+    writeDataSQL(db, query, (index_tab*2+2), name, login, pas);
+    dataChanged = false;    //изменения вкладки сохранены
+}
+
+/*
+void Tab_template::delete_data_tab(QSqlDatabase& db, int index_tab)
+{
+    QSqlQuery query;
+    if (deleteDataSQL(db, query, (index_tab*2+1)))
+    {
+        qDebug() << "Успешно удалены данные ресурса вкладки " <<index_tab+1;
+    }
+    if (deleteDataSQL(db, query, (index_tab*2+2)))
+    {
+        qDebug() << "Успешно удалены данные ресурса вкладки " <<index_tab+1;
+    }
+}
+*/
+
+void Tab_template::save_tab_change(QSqlDatabase& db, int id)
+{
+    if (dataChanged==true)
+    {
+        write_data_tab(db, id);
     }
 }
 
+bool Tab_template::get_flag_change_tab()
+{
+    return dataChanged;
+}
+
+void Tab_template::setVisiblePas()
+{
+    if (!passw_line1->text().isEmpty())
+    {
+        visiblePassw1->setIcon(QIcon(":/img/closed_lock.png"));
+        visiblePassw1->setIconSize(QSize(26,26));
+        passw_line1->setEchoMode(QLineEdit::Password);
+    }
+
+    if (!passw_line2->text().isEmpty())
+    {
+        visiblePassw2->setIcon(QIcon(":/img/closed_lock.png"));
+        visiblePassw2->setIconSize(QSize(26,26));
+        passw_line2->setEchoMode(QLineEdit::Password);
+    }
+}
+
+void Tab_template::changeVisiblePas1()
+{
+    if (QLineEdit::Password == passw_line1->echoMode())
+    {
+        visiblePassw1->setIcon(QIcon(":/img/open_lock.png"));
+        visiblePassw1->setIconSize(QSize(26,26));
+        passw_line1->setEchoMode(QLineEdit::Normal);
+    }
+    else
+    {
+        visiblePassw1->setIcon(QIcon(":/img/closed_lock.png"));
+        visiblePassw1->setIconSize(QSize(26,26));
+        passw_line1->setEchoMode(QLineEdit::Password);
+    }
+}
+
+void Tab_template::changeVisiblePas2()
+{
+    if (QLineEdit::Password == passw_line2->echoMode())
+    {
+        visiblePassw2->setIcon(QIcon(":/img/open_lock.png"));
+        visiblePassw2->setIconSize(QSize(26,26));
+        passw_line2->setEchoMode(QLineEdit::Normal);
+    }
+    else
+    {
+        visiblePassw2->setIcon(QIcon(":/img/closed_lock.png"));
+        visiblePassw2->setIconSize(QSize(26,26));
+        passw_line2->setEchoMode(QLineEdit::Password);
+    }
+}
+
+QString Tab_template::get_name_resource1()
+{
+    return name_resourse1->text();
+}
+
+QString Tab_template::get_name_resource2()
+{
+    return name_resourse2->text();
+}
+
+void Tab_template::select_resource1()
+{
+    name_resourse1->setFocus();
+    name_resourse1->selectAll();
+}
+void Tab_template::select_resource2()
+{
+    name_resourse2->setFocus();
+    name_resourse2->selectAll();
+}
 
 void Tab_template::generate_passw1()
 {
-    password_entry1->setText(password_generator());
+    if (passw_line1->text().isEmpty() or QLineEdit::Password == passw_line1->echoMode())
+        passw_line1->setEchoMode(QLineEdit::Password);
+
+    passw_line1->setText(password_generator());
 }
 
 void Tab_template::generate_passw2()
 {
-    password_entry2->setText(password_generator());
+    if (passw_line2->text().isEmpty() or QLineEdit::Password == passw_line2->echoMode())
+        passw_line2->setEchoMode(QLineEdit::Password);
+
+    passw_line2->setText(password_generator());
+}
+
+void Tab_template::copy_login1()
+{
+    timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
+    if (!QApplication::clipboard()) {
+        qDebug() << ("Нет доступа к буферу обмена");
+    }
+
+    mime.setText(login_line1->text());
+    mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+    QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+
+    timer1_clipboard.setInterval(5000);
+    timer1_clipboard.start();
+}
+
+void Tab_template::copy_passw1()
+{
+    timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
+    if (!QApplication::clipboard()) {
+        qDebug() << ("Нет доступа к буферу обмена");
+    }
+
+    mime.setText(passw_line1->text());
+    mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+    QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+
+    timer2_clipboard.setInterval(5000);
+    timer2_clipboard.start();
+}
+
+void Tab_template::copy_login2()
+{
+    timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
+    if (!QApplication::clipboard()) {
+        qDebug() << ("Нет доступа к буферу обмена");
+    }
+
+    mime.setText(login_line2->text());
+    mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+    QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+
+    timer3_clipboard.setInterval(5000);
+    timer3_clipboard.start();
+}
+
+void Tab_template::copy_passw2()
+{
+    timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
+    if (!QApplication::clipboard()) {
+        qDebug() << ("Нет доступа к буферу обмена");
+    }
+
+    mime.setText(passw_line2->text());
+    mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+    QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+
+    timer4_clipboard.setInterval(5000);
+    timer4_clipboard.start();
+}
+
+void Tab_template::timeout1_clipboard()
+{
+    QString inputStr = login_line1->text();
+    if (inputStr == QApplication::clipboard()->text(QClipboard::Clipboard) || inputStr == QApplication::clipboard()->text(QClipboard::Selection))
+    {
+        mime.setText("");
+        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+    }
+    timer1_clipboard.stop();
+}
+
+void Tab_template::timeout2_clipboard()
+{
+    QString inputStr = passw_line1->text();
+    if (inputStr == QApplication::clipboard()->text(QClipboard::Clipboard) || inputStr == QApplication::clipboard()->text(QClipboard::Selection))
+    {
+        mime.setText("");
+        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+    }
+    timer2_clipboard.stop();
+}
+
+void Tab_template::timeout3_clipboard()
+{
+    QString inputStr = login_line2->text();
+    if (inputStr == QApplication::clipboard()->text(QClipboard::Clipboard) || inputStr == QApplication::clipboard()->text(QClipboard::Selection))
+    {
+        mime.setText("");
+        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+    }
+    timer3_clipboard.stop();
+}
+
+void Tab_template::timeout4_clipboard()
+{
+    QString inputStr = passw_line2->text();
+    if (inputStr == QApplication::clipboard()->text(QClipboard::Clipboard) || inputStr == QApplication::clipboard()->text(QClipboard::Selection))
+    {
+        mime.setText("");
+        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+    }
+    timer4_clipboard.stop();
 }
 
 QString Tab_template::password_generator()
@@ -405,7 +536,6 @@ QString Tab_template::password_generator()
     int max_limit_symbol=0;           //максимальное количество символов и цифр в генераторе случайных чисел
     int number_symbol=0;              //количество символов
     int number_digits=0;              //количество цифр
-    //int number_spec_symbol=0;         //количество спец. символов
 
     //Определение позиции элементов
     counter_position=0;
@@ -428,19 +558,14 @@ QString Tab_template::password_generator()
         }
         else
         {
-            counter_position=counter_position+1;
+            counter_position+=1;
         }
     }
-
     //Вычисление количества символов, цифр и спец. символов в пароле (коэффициенты для 10-значного пароля)
     max_limit_symbol=static_cast<int>(0.5*len_string);
     std::uniform_int_distribution<int>distribution(3,max_limit_symbol);
     number_symbol = distribution(*QRandomGenerator::global());
-
     number_digits = distribution(*QRandomGenerator::global());
-
-    //number_spec_symbol=len_string-number_symbol-number_digits;
-
     //Генерация символов в пароле
     for (int i=0; i<number_symbol; i++)
     {
@@ -467,37 +592,23 @@ QString Tab_template::password_generator()
     {
         generated_password[i]=QChar(gen_symbol[i]);
     }
-
     return generated_password;
 }
 
-QString Tab_template::get_name_resource1()
+/*
+void Tab_template::data_filling(int id)
 {
-    QString str=name_data_entry1->text();
-    return str;
-}
-QString Tab_template::get_name_resource2()
-{
-    QString str=name_data_entry2->text();
-    return str;
-}
-void Tab_template::select_resource1()
-{
-    name_data_entry1->setFocus();
-    name_data_entry1->selectAll();
-}
-void Tab_template::select_resource2()
-{
-    name_data_entry2->setFocus();
-    name_data_entry2->selectAll();
-}
+    int current_index = id*2+1;
 
-void Tab_template::resizeEvent(QResizeEvent* event)
-{
-    QMainWindow::resizeEvent(event);
-    int newSizeWidget=static_cast<int>(0.56*(widget->width()));
-    name_data_entry1->setFixedWidth(newSizeWidget-107);
-    templateWidget[0]->setFixedWidth(newSizeWidget);
-    name_data_entry2->setFixedWidth(newSizeWidget-107);
-    templateWidget[3]->setFixedWidth(newSizeWidget);
+    name_resourse1->setText(tr("ресурс")+QString::number(current_index));
+    login_line1->setText(tr("логин")+QString::number(current_index));
+    passw_line1->setText(tr("пароль")+QString::number(current_index));
+
+    current_index = id*2+2;
+
+    name_resourse2->setText(tr("ресурс")+QString::number(current_index));
+    login_line2->setText(tr("логин")+QString::number(current_index));
+    passw_line2->setText(tr("пароль")+QString::number(current_index));
+
 }
+*/
