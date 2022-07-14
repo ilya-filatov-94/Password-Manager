@@ -517,7 +517,7 @@ bool Window_setting::repeating_sequence(QString enter_string)
 
 void Window_setting::gen_master_passw()
 {
-    if (enter_new_pas->text().isEmpty() or QLineEdit::Password == enter_new_pas->echoMode())
+    if (QLineEdit::Password == enter_new_pas->echoMode())
         enter_new_pas->setEchoMode(QLineEdit::Password);
 
     enter_new_pas->setText(password_generator());
