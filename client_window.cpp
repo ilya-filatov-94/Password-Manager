@@ -312,7 +312,6 @@ void Client_window::readSettings()
     if(db.open())
     {
         readData();
-        qDebug() << "Чтение даных завершено";
     }
     else {
         dialog_message();
