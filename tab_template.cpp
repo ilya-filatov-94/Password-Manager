@@ -410,7 +410,7 @@ void Tab_template::select_resource2()
 
 void Tab_template::generate_passw1()
 {
-    if (passw_line1->text().isEmpty() or QLineEdit::Password == passw_line1->echoMode())
+    if (QLineEdit::Password == passw_line1->echoMode())
         passw_line1->setEchoMode(QLineEdit::Password);
 
     passw_line1->setText(password_generator());
@@ -418,7 +418,7 @@ void Tab_template::generate_passw1()
 
 void Tab_template::generate_passw2()
 {
-    if (passw_line2->text().isEmpty() or QLineEdit::Password == passw_line2->echoMode())
+    if ( QLineEdit::Password == passw_line2->echoMode())
         passw_line2->setEchoMode(QLineEdit::Password);
 
     passw_line2->setText(password_generator());
