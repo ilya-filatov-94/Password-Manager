@@ -21,7 +21,6 @@ bool DataManagement::readDataSQL(QSqlDatabase& db, QSqlQuery& query1, int id, QS
     query1.next();
     if (query1.value(0) !=0)    //Запись с данным id существует в таблице
     {
-        //Читаем записи с нужным id
         query1.exec(QString("select * from datatable where id = '%1'").arg(id));
         QSqlRecord rec = query1.record();
         int i=0;
@@ -48,7 +47,6 @@ bool DataManagement::readDataSQL(QSqlDatabase& db, QSqlQuery& query1, int id, QS
     }
     else
     {
-        qDebug() << "Запись с данным id Не существовала в БД";
         query1.clear();
         return false;
     }
@@ -78,11 +76,10 @@ void DataManagement::writeDataSQL(QSqlDatabase& db, QSqlQuery& query1, int id, Q
         query1.addBindValue(encdArr[1]);
         query1.addBindValue(encdArr[2]);
         if (!query1.exec()) {
-            qDebug() << "Перезапись невозможна";
             query1.clear();
         }
     }
-    else    //Запись с данным id НЕ СУЩЕСТВОВУЕТ в БД
+    else
     {
         query1.prepare("insert into datatable (id, name_resource, login_resource, password_resource) values (?, ?, ?, ?)");
         query1.addBindValue(id);
@@ -90,12 +87,10 @@ void DataManagement::writeDataSQL(QSqlDatabase& db, QSqlQuery& query1, int id, Q
         query1.addBindValue(encdArr[1]);
         query1.addBindValue(encdArr[2]);
         if (!query1.exec()) {
-            qDebug() << "Ошибка записи";
             query1.clear();
         }
     }
     if (writeDataSQL_vectorsTable(db, query1, id, "key"+QString::number(id), keyN, "iv"+QString::number(id), vectorN))  {
-        qDebug() << "Запись произведена! " +QString::number(id);
         query1.clear();
     }
     else {
@@ -112,7 +107,7 @@ bool DataManagement::deleteDataSQL(QSqlDatabase& db, QSqlQuery& query1, int id)
     }
     query1.exec(QString("select exists (select * from datatable where id = '%1');").arg(id));
     query1.next();
-    if (query1.value(0) !=0)    //Запись с данным id существует в БД
+    if (query1.value(0) !=0)
     {
         if (!query1.exec(QString("delete from datatable where id = '%1'").arg(id))) {
             query1.clear();
@@ -144,7 +139,8 @@ bool DataManagement::deleteDataSQL_vectorsTable(QSqlDatabase& db, QSqlQuery& que
     }
     query.exec(QString("select exists (select * from vectorstable where id = '%1');").arg(id));
     query.next();
-    if (query.value(0) !=0) {   //Запись с данным id существует в БД
+    if (query.value(0) !=0)
+    {
         if (!query.exec(QString("delete from vectorstable where id = '%1'").arg(id))) {
             query.clear();
             return false;
@@ -168,14 +164,13 @@ bool DataManagement::writeDataSQL_vectorsTable(QSqlDatabase& db, QSqlQuery& quer
      //Проверка существования записи с нужным id
      query.exec(QString("select exists (select * from vectorstable where id = '%1');").arg(id));
      query.next();
-     if (query.value(0) !=0)    //Запись с данным id существовала уже в БД
+     if (query.value(0) !=0)
      {
         query.prepare(QString("update vectorstable set parameter1=?, value1=?, parameter2=?, value2=? where id ='%1'").arg(id));
         query.addBindValue(parameter1);
         query.addBindValue(value1);
         query.addBindValue(parameter2);
         query.addBindValue(value2);
-
         if (!query.exec()) {
             query.clear();
             return false;
@@ -183,7 +178,7 @@ bool DataManagement::writeDataSQL_vectorsTable(QSqlDatabase& db, QSqlQuery& quer
         query.clear();
         return true;
      }
-     else    //Запись с данным id НЕ СУЩЕСТВОВУЕТ в БД
+     else
      {
         query.prepare("insert into vectorstable (id, parameter1, value1, parameter2, value2) values (?, ?, ?, ?, ?)");
         query.addBindValue(id);
@@ -211,7 +206,7 @@ bool DataManagement::readDataSQL_vectorsTable(QSqlDatabase & db, QSqlQuery& quer
     else {
         query.exec(QString("select exists (select * from vectorstable where id = '%1');").arg(id));
         query.next();
-        if (query.value(0) !=0)    //Запись с данным id существует в таблице
+        if (query.value(0) !=0)
         {
             //Читаем записи с нужным параметром
             query.exec(QString("select * from vectorstable where id = '%1'").arg(id));
@@ -277,7 +272,6 @@ QByteArray DataManagement::readDataSQL_settingTable(QSqlDatabase& db, QSqlQuery&
         query.next();
         if (query.value(0) !=0)    //Запись с данным параметром существует в таблице
         {
-            //Читаем записи с нужным параметром
             query.exec(QString("select * from settingtable where parameter = '%1'").arg(parameter));
             QSqlRecord rec = query.record();
             while (query.next())
