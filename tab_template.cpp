@@ -427,61 +427,57 @@ void Tab_template::generate_passw2()
 void Tab_template::copy_login1()
 {
     timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
-    if (!QApplication::clipboard()) {
-        qDebug() << ("Нет доступа к буферу обмена");
+    if (QApplication::clipboard())
+    {
+        mime.setText(login_line1->text());
+        mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+
+        timer1_clipboard.setInterval(5000);
+        timer1_clipboard.start();
     }
-
-    mime.setText(login_line1->text());
-    mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-    QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-
-    timer1_clipboard.setInterval(5000);
-    timer1_clipboard.start();
 }
 
 void Tab_template::copy_passw1()
 {
     timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
-    if (!QApplication::clipboard()) {
-        qDebug() << ("Нет доступа к буферу обмена");
+    if (QApplication::clipboard())
+    {
+        mime.setText(passw_line1->text());
+        mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+
+        timer2_clipboard.setInterval(5000);
+        timer2_clipboard.start();
     }
-
-    mime.setText(passw_line1->text());
-    mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-    QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-
-    timer2_clipboard.setInterval(5000);
-    timer2_clipboard.start();
 }
 
 void Tab_template::copy_login2()
 {
     timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
-    if (!QApplication::clipboard()) {
-        qDebug() << ("Нет доступа к буферу обмена");
+    if (QApplication::clipboard())
+    {
+        mime.setText(login_line2->text());
+        mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+
+        timer3_clipboard.setInterval(5000);
+        timer3_clipboard.start();
     }
-
-    mime.setText(login_line2->text());
-    mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-    QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-
-    timer3_clipboard.setInterval(5000);
-    timer3_clipboard.start();
 }
 
 void Tab_template::copy_passw2()
 {
     timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
-    if (!QApplication::clipboard()) {
-        qDebug() << ("Нет доступа к буферу обмена");
+    if (QApplication::clipboard())
+    {
+        mime.setText(passw_line2->text());
+        mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+
+        timer4_clipboard.setInterval(5000);
+        timer4_clipboard.start();
     }
-
-    mime.setText(passw_line2->text());
-    mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-    QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-
-    timer4_clipboard.setInterval(5000);
-    timer4_clipboard.start();
 }
 
 void Tab_template::timeout1_clipboard()
