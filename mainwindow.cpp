@@ -213,49 +213,44 @@ void MainWindow::slot_requestReadData()
 
 void MainWindow::requestReadData()
 {
-    //Виджет загрузки
     wait_widget.show();
     movie->start();
-    //------------------
-    if (setting->value("status").toInt()!=255) {
-    qDebug() << "Запуск проверки наличия USB-ключа";
-    if (checkUSBDrive())
+    if (setting->value("status").toInt()!=255)
     {
-        disconnect(ok, SIGNAL(clicked()), this, SLOT(slot_requestReadData()));
-        disconnect(key_enter, SIGNAL(activated()), this, SLOT(slot_requestReadData()));
-        connect(ok, SIGNAL(clicked()), this, SLOT(check_password()));
-        connect(key_enter, SIGNAL(activated()), this, SLOT(check_password()));
-        qDebug() << "USB-ключ успешно прочитан!";
-        if(db.open())
+        if (checkUSBDrive())
         {
-            check_blocked();
-        }
-    }
-    else {
-        counter_attempts_autoriz++;   //Счётчик кол-ва попыток
-        //Если кол-во попыток исчерпано
-        if (counter_attempts_autoriz>=max_quantity_attempts)
-        {
-            dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано"));   //вызов диалогового окна с ошибкой
-            setting->setValue("status", 255);
-            QByteArray status = "255";
-            if (db.open())
+            disconnect(ok, SIGNAL(clicked()), this, SLOT(slot_requestReadData()));
+            disconnect(key_enter, SIGNAL(activated()), this, SLOT(slot_requestReadData()));
+            connect(ok, SIGNAL(clicked()), this, SLOT(check_password()));
+            connect(key_enter, SIGNAL(activated()), this, SLOT(check_password()));
+            if(db.open())
             {
-                QSqlQuery query;
-                writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);   //блокировка повторного открытия приложения
+                check_blocked();
             }
-            this->close();
-            exit(1);
         }
         else
         {
-            //Виджет загрузки
-            movie->stop();
-            wait_widget.setVisible(false);
-            //------------------
-            dialog_message(QMessageBox::Critical, tr("Ошибка!"), (tr("Вставьте USB-ключ! <br> Осталось ")+QString::number(max_quantity_attempts-counter_attempts_autoriz)+tr(" попыток авторизации")));
+            counter_attempts_autoriz++;   //Счётчик кол-ва попыток
+            if (counter_attempts_autoriz>=max_quantity_attempts)
+            {
+                dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано"));   //вызов диалогового окна с ошибкой
+                setting->setValue("status", 255);
+                QByteArray status = "255";
+                if (db.open())
+                {
+                    QSqlQuery query;
+                    writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);   //блокировка повторного открытия приложения
+                }
+                this->close();
+                exit(1);
+            }
+            else
+            {
+                movie->stop();
+                wait_widget.setVisible(false);
+                dialog_message(QMessageBox::Critical, tr("Ошибка!"), (tr("Вставьте USB-ключ! <br> Осталось ")+QString::number(max_quantity_attempts-counter_attempts_autoriz)+tr(" попыток авторизации")));
+            }
         }
-      }
     }
     else {
         dialog_message(QMessageBox::Critical, tr("Приложение заблокировано"), tr("Исчерпано количество попыток входа"));   //вызов диалогового окна с ошибкой
@@ -264,7 +259,6 @@ void MainWindow::requestReadData()
     }
 }
 
-//Проверка блокировки приложения
 void MainWindow::check_blocked()
 {
     int blocked_app=255;
@@ -273,8 +267,6 @@ void MainWindow::check_blocked()
         QSqlQuery query;
         QString str = QString::fromLocal8Bit(readDataSQL_settingTable(db, query, "app_lock_status"));
         blocked_app = str.toInt();
-        qDebug() << "blocked_app" << blocked_app;
-
         if (blocked_app==255 or setting->value("status").toInt()==255)
         {
             dialog_message(QMessageBox::Critical, tr("Приложение заблокировано"), tr("Исчерпано количество попыток входа"));   //вызов диалогового окна с ошибкой
@@ -289,10 +281,10 @@ void MainWindow::check_blocked()
     }
 }
 
-//Чтение основных настроек приложения: блокировки прил., состояния CapsLock, видимость виджетов пров. кода, старт таймера и т.д.
+//Чтение основных настроек приложения
 void MainWindow::read_main_settings()
 {
-    state_capslock();   //Чтение состояния клавиши CapsLock
+    state_capslock();
     if(db.open())
     {
         QSqlQuery query;
@@ -301,19 +293,15 @@ void MainWindow::read_main_settings()
         iv = readDataSQL_settingTable(db, query, "main_vector");
         text = readDataSQL_settingTable(db, query, "master_pas");
         output_pas = decryptAES(text, key, iv);
-        qDebug() << "output_pas" << output_pas;
 
         mail_autoriz = QString::fromLocal8Bit(readDataSQL_settingTable(db, query, "availability_email"));
         check_mail = mail_autoriz.toInt();
-        qDebug() << "check_mail" << check_mail;
 
         key = readDataSQL_settingTable(db, query, "key_mail");
         iv = readDataSQL_settingTable(db, query, "vector_mail");
         text = readDataSQL_settingTable(db, query, "address_email");
         mail_autoriz = decryptAES(text, key, iv);
-        qDebug() << "mail_autoriz" << mail_autoriz;
 
-        //Виджет загрузки
         movie->stop();
         wait_widget.setVisible(false);
     }
@@ -324,7 +312,7 @@ void MainWindow::read_main_settings()
         dialog_message(QMessageBox::Warning, tr("Ошибка!"), (tr("Вставьте USB-ключ!")));
     }
     //Инициализация видимости виджетов проверки одноразового кода и первый запуск таймера
-    if (check_mail==1)      //Если почта привязана
+    if (check_mail==1)
     {
         QString text_request_mail;
         text_request_mail.clear();
@@ -361,7 +349,7 @@ void MainWindow::limiting_attempts_resend()
 {
     if (counter_attempts_autoriz>=max_quantity_attempts)
     {
-        dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации. <br> Приложение заблокировано"));   //вызов диалогового окна с ошибкой                    
+        dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации. <br> Приложение заблокировано"));   //вызов диалогового окна с ошибкой
         setting->setValue("status", 255);
         QByteArray status = "255";
         if (db.open())
@@ -682,7 +670,6 @@ bool MainWindow::checkUSBDrive()
                 listFiles.clear();
                 searhPathFile(QDir(rootPath), listFiles);  //открытие диска и поиск файла
                 QApplication::processEvents(QEventLoop::AllEvents);
-                //перебор всех путей файлов
                 foreach (QString file, listFiles)
                 {
                     if (!file.isEmpty())    {//проверяем на наличие файла dbase
@@ -699,8 +686,6 @@ bool MainWindow::checkUSBDrive()
                         }
                         if (nameDisk==readNameDevice && serialNumberString==readSerialNumber)
                         {
-                            qDebug() << "readNameDevice" << readNameDevice;
-                            qDebug() << "readSerialNumber" << readSerialNumber;
                             return true;
                         }
                         else {
