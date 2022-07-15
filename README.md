@@ -19,5 +19,5 @@
 
 
 ## Technologies used
-Qt5 framework ![](https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Qt_logo_2016.svg/1280px-Qt_logo_2016.svg.png), multithreading, SQLITE, [library for SMTP server](https://github.com/bluetiger9/SmtpClient-for-Qt), [database of  check passwords](https://haveibeenpwned.com), [the encryption library Qt-Secret](https://github.com/QuasarApp/Qt-Secret)
+Qt5 framework, multithreading, SQLITE, [library for SMTP server](https://github.com/bluetiger9/SmtpClient-for-Qt), [database of  check passwords](https://haveibeenpwned.com), [the encryption library Qt-Secret](https://github.com/QuasarApp/Qt-Secret)
 
