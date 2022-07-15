@@ -15,10 +15,9 @@
 
 
 ## DEMO
-### Desktop
-![DEMO of application](/video_description_of_app.mp4)
+[DEMO of application](/video_description_of_app.mp4)
 
 
 ## Technologies used
-Qt5 framework, multithreading, SQLITE, [library for SMTP server](https://github.com/bluetiger9/SmtpClient-for-Qt), [database of  check passwords](https://haveibeenpwned.com) [the encryption library Qt-Secret](https://github.com/QuasarApp/Qt-Secret)
+Qt5 framework, multithreading, SQLITE, [library for SMTP server](https://github.com/bluetiger9/SmtpClient-for-Qt), [database of  check passwords](https://haveibeenpwned.com), [the encryption library Qt-Secret](https://github.com/QuasarApp/Qt-Secret)
 
