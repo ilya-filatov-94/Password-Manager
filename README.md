@@ -4,7 +4,7 @@
 1. Password manager for Windows, written using the Qt framework.
 2. Encrypting database with the AES (aka Rijndael) encryption algorithm using a 256 bit key
 3. Using local database saved on USB flash drive.
-4. Two factor authentication (2FA) with SMTP (TLS connection)
+4. Two factor authentication (2FA) using SMTP server with TLS connection
 5. Generating passwords
 6. Checking the master password in the database of passwords that have been compromised or "pwned" in a data breach
 7. Automatic verification of the strength of the master password
