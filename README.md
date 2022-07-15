@@ -4,7 +4,7 @@
 1. Password manager for Windows, written using the Qt framework.
 2. Encrypting database with the AES (aka Rijndael) encryption algorithm using a 256 bit key
 3. Using local database saved on USB flash drive.
-4. Two factor authentication (2FA)
+4. Two factor authentication (2FA) with SMTP (TLS connection)
 5. Generating passwords
 6. Checking the master password in the database of passwords that have been compromised or "pwned" in a data breach
 7. Automatic verification of the strength of the master password
@@ -19,5 +19,5 @@
 
 
 ## Technologies used
-Qt5 framework, multithreading, SQLITE, [library for SMTP server](https://github.com/bluetiger9/SmtpClient-for-Qt), [database of  check passwords](https://haveibeenpwned.com), [the encryption library Qt-Secret](https://github.com/QuasarApp/Qt-Secret)
+Qt5 framework[](https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Qt_logo_2016.svg/1280px-Qt_logo_2016.svg.png), multithreading, SQLITE, [library for SMTP server](https://github.com/bluetiger9/SmtpClient-for-Qt), [database of  check passwords](https://haveibeenpwned.com), [the encryption library Qt-Secret](https://github.com/QuasarApp/Qt-Secret)
 
