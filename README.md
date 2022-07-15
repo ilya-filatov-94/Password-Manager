@@ -1,5 +1,5 @@
-# Desktop application for Windows - __Password Manager__
----
+# Desktop application for Windows - Password Manager
+
 ## Main objectives of the project
 1. Password manager for Windows, written using the Qt framework.
 2. Encrypting database with the AES (aka Rijndael) encryption algorithm using a 256 bit key
@@ -13,12 +13,12 @@
 10. Checking for an Internet connection for Windows for work smtp-server
 11. Changing background for tabs using dragging and dropping. 
 
----
+
 ## DEMO
 ### Desktop
 ![DEMO of application](/video_description_of_app.mp4)
 
----
+
 ## Technologies used
-Qt5 framework, multithreading, SQLITE, ![library for SMTP server](https://github.com/bluetiger9/SmtpClient-for-Qt), ![database of  check passwords](https://haveibeenpwned.com) ![the encryption library Qt-Secret](https://github.com/QuasarApp/Qt-Secret)
+Qt5 framework, multithreading, SQLITE, [library for SMTP server](https://github.com/bluetiger9/SmtpClient-for-Qt), [database of  check passwords](https://haveibeenpwned.com) [the encryption library Qt-Secret](https://github.com/QuasarApp/Qt-Secret)
 
