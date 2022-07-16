@@ -264,15 +264,14 @@ void Window_setting::read_settings()
 
         address_mail_string = QString::fromLocal8Bit(readDataSQL_settingTable(db, query, "availability_email"));
         check_mail = address_mail_string.toInt();
-        read_setting_mail(check_mail, address_mail_string);
         if (check_mail == 1)
         {
             key = readDataSQL_settingTable(db, query, "key_mail");
             iv = readDataSQL_settingTable(db, query, "vector_mail");
             text = readDataSQL_settingTable(db, query, "address_email");
             address_mail_string = decryptAES(text, key, iv);
-            read_setting_mail(check_mail, address_mail_string);
         }
+        read_setting_mail(check_mail, address_mail_string);
     }
     else
     {
@@ -335,9 +334,9 @@ void Window_setting::save_mail_status()
         if (db.open())
         {
             QSqlQuery query;
-            check_mail = "0";
             writeDataSQL_settingTable(db, query, 7, "availability_email", check_mail);
             writeDataSQL_settingTable(db, query, 10, "address_email", address);
+            enter_address_mail->setText(address);
             change_status_mail = false;
         }
         else
@@ -827,4 +826,18 @@ void Window_setting::changeVisibleNew_pas()
         visibleNewPas->setIconSize(QSize(26,26));
         enter_new_pas->setEchoMode(QLineEdit::Password);
     }
+}
+
+void Window_setting::closeEvent(QCloseEvent* event)
+{
+    //видимость паролей
+    visibleOldPas->setIcon(QIcon(":/img/closed_lock.png"));
+    visibleOldPas->setIconSize(QSize(26,26));
+    enter_old_pas->setEchoMode(QLineEdit::Password);
+
+    visibleNewPas->setIcon(QIcon(":/img/closed_lock.png"));
+    visibleNewPas->setIconSize(QSize(26,26));
+    enter_new_pas->setEchoMode(QLineEdit::Password);
+
+    event->accept();
 }
