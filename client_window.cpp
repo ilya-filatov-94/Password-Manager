@@ -328,7 +328,7 @@ void Client_window::readData()
     set_default_bg_image(pal, 0);           //стандартный фон вкладки
     for (int i=1; i<=tabs_counter; i++)
     {
-        tab_widget[i] = new Tab_template;
+        tab_widget[i] = new Tab_template(this);
         MyGlobalWindow->addTab(tab_widget[i], QString("Вкладка %1").arg(QString::number(i+1)));
         connect(tab_widget[i], &Tab_template::signal_save_tab, this, &Client_window::writeData);
         tab_widget[i]->read_data_tab(db, i);    //Чтение данных
