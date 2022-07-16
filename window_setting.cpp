@@ -14,8 +14,6 @@ Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
 
     //Копка видимости текущего пароля
     visibleOldPas = new QPushButton(this);
-    visibleOldPas->setIcon(QIcon(":/img/closed_lock.png"));
-    visibleOldPas->setIconSize(QSize(26,26));
     visibleOldPas->setFixedHeight(26);
     visibleOldPas->setFixedWidth(26);
     visibleOldPas->setToolTip(tr("Изменение видимости пароля"));
@@ -37,8 +35,6 @@ Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
 
     //Копка видимости нового пароля
     visibleNewPas = new QPushButton(this);
-    visibleNewPas->setIcon(QIcon(":/img/closed_lock.png"));
-    visibleNewPas->setIconSize(QSize(26,26));
     visibleNewPas->setFixedHeight(26);
     visibleNewPas->setFixedWidth(26);
     visibleNewPas->setToolTip(tr("Изменение видимости пароля"));
@@ -245,7 +241,12 @@ Window_setting:: ~Window_setting()
 
 void Window_setting::read_settings()
 {
+    visibleOldPas->setIcon(QIcon(":/img/closed_lock.png"));
+    visibleOldPas->setIconSize(QSize(26,26));
+    visibleNewPas->setIcon(QIcon(":/img/closed_lock.png"));
+    visibleNewPas->setIconSize(QSize(26,26));
     enter_new_pas->setText(tr(""));
+    
     QString old_global_pas;
     db = QSqlDatabase::database();
     int check_mail = 0;
@@ -826,18 +827,4 @@ void Window_setting::changeVisibleNew_pas()
         visibleNewPas->setIconSize(QSize(26,26));
         enter_new_pas->setEchoMode(QLineEdit::Password);
     }
-}
-
-void Window_setting::closeEvent(QCloseEvent* event)
-{
-    //видимость паролей
-    visibleOldPas->setIcon(QIcon(":/img/closed_lock.png"));
-    visibleOldPas->setIconSize(QSize(26,26));
-    enter_old_pas->setEchoMode(QLineEdit::Password);
-
-    visibleNewPas->setIcon(QIcon(":/img/closed_lock.png"));
-    visibleNewPas->setIconSize(QSize(26,26));
-    enter_new_pas->setEchoMode(QLineEdit::Password);
-
-    event->accept();
 }
