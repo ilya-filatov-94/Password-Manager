@@ -413,15 +413,15 @@ void Tab_template::generate_passw1()
     if (QLineEdit::Password == passw_line1->echoMode())
         passw_line1->setEchoMode(QLineEdit::Password);
 
-    passw_line1->setText(password_generator());
+    passw_line1->setText(password_generator(length_pas));
 }
 
 void Tab_template::generate_passw2()
 {
-    if ( QLineEdit::Password == passw_line2->echoMode())
+    if (QLineEdit::Password == passw_line2->echoMode())
         passw_line2->setEchoMode(QLineEdit::Password);
 
-    passw_line2->setText(password_generator());
+    passw_line2->setText(password_generator(length_pas));
 }
 
 void Tab_template::copy_login1()
@@ -524,72 +524,60 @@ void Tab_template::timeout4_clipboard()
     timer4_clipboard.stop();
 }
 
-QString Tab_template::password_generator()
-{
-    QString generated_password;       //сгенерированный пароль
-    int counter_position=0;           //текущая позиция элемента
-    bool duplicate=false;             //если генерируемая позиция повторяется, генерация производится снова
-    int max_limit_symbol=0;           //максимальное количество символов и цифр в генераторе случайных чисел
-    int number_symbol=0;              //количество символов
-    int number_digits=0;              //количество цифр
+QString Tab_template::password_generator(int length_pas) {
 
-    //Определение позиции элементов
-    counter_position=0;
-    while (counter_position!=len_string)
-    {
-        std::uniform_int_distribution<int>distribution(0,len_string-1);
-        array_position[counter_position] = distribution(*QRandomGenerator::global());
-        duplicate=false;
-        for (int i=0; i<(len_string-1); i++)
-        {
-            if (array_position[i]==array_position[counter_position] and i!=counter_position)
-            {
-                duplicate=true;
-            }
-        }
-        if (duplicate==true)
-        {
-            std::uniform_int_distribution<int>distribution(0,len_string-1);
-            array_position[counter_position] = distribution(*QRandomGenerator::global());
-        }
-        else
-        {
-            counter_position+=1;
-        }
-    }
-    //Вычисление количества символов, цифр и спец. символов в пароле (коэффициенты для 10-значного пароля)
-    max_limit_symbol=static_cast<int>(0.5*len_string);
-    std::uniform_int_distribution<int>distribution(3,max_limit_symbol);
-    number_symbol = distribution(*QRandomGenerator::global());
-    number_digits = distribution(*QRandomGenerator::global());
+    QString generated_password;             //строка сгенерированного пароля
+    const int numberOfSymbolCodes = 52;     //кол-во латинских символов в unicode таблице
+    const int numberOfDigitCodes = 10;      //количество цифр
+    const int numberOfSpecSymbolCodes = 32; //кол-во спец символов в unicode таблице
+
+    //Нужно соблюсти определённое количество символов, опр. количество цифр и опр. кол-во спец. символов, поэтому 3 отдельных массива Unicode
+    int code_latin_symbol [numberOfSymbolCodes] = {65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122};
+    int code_digits [numberOfDigitCodes] = {48, 49, 50, 51, 52, 53, 54, 55, 56, 57};
+    int code_spec_symbol [numberOfSpecSymbolCodes] = {33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 58, 59, 60, 61, 62, 63, 64, 91, 92, 93, 94, 95, 96, 123, 124, 125, 126};
+
+    //Задаём примерное соотношение символов и цифр в пароле
+    std::uniform_int_distribution<int>distribution1(static_cast<int>(length_pas * 0.4), static_cast<int>(length_pas * 0.5));
+    int number_symbols = distribution1(*QRandomGenerator::global());
+    std::uniform_int_distribution<int>distribution2(static_cast<int>(length_pas * 0.3), static_cast<int>(length_pas * 0.4));
+    int number_digits = distribution2(*QRandomGenerator::global());
+
     //Генерация символов в пароле
-    for (int i=0; i<number_symbol; i++)
+    for (int i=0; i<number_symbols; i++)
     {
-       std::uniform_int_distribution<int>distribution(0,51);
-       gen_elem_array_code[array_position[i]] = distribution(*QRandomGenerator::global());
-       gen_symbol[array_position[i]]=code_latin_symbol[gen_elem_array_code[array_position[i]]];
+        std::uniform_int_distribution<int>distribution(0, numberOfSymbolCodes-1);
+        generated_password[i] = QChar(code_latin_symbol[distribution(*QRandomGenerator::global())]);
     }
+
     //Генерация цифр в пароле
-    for (int i=number_symbol; i<number_digits+number_symbol; i++)
+    for (int i=number_symbols; i<(number_symbols+number_digits); i++)
     {
-        std::uniform_int_distribution<int>distribution(0,9);
-        gen_elem_array_code[array_position[i]] = distribution(*QRandomGenerator::global());
-        gen_symbol[array_position[i]]=code_digits[gen_elem_array_code[array_position[i]]];
+        std::uniform_int_distribution<int>distribution(0, numberOfDigitCodes-1);
+        generated_password[i] = QChar(code_digits[distribution(*QRandomGenerator::global())]);
     }
+
     //Генерация спец. символов в пароле
-    for (int i=number_digits+number_symbol; i<len_string; i++)
+    for (int i=(number_symbols+number_digits); i<length_pas; i++)
     {
-        std::uniform_int_distribution<int>distribution(0,31);
-        gen_elem_array_code[array_position[i]] = distribution(*QRandomGenerator::global());
-        gen_symbol[array_position[i]]=code_spec_symbol[gen_elem_array_code[array_position[i]]];
+        std::uniform_int_distribution<int>distribution(0, numberOfSpecSymbolCodes-1);
+        generated_password[i] = QChar(code_spec_symbol[distribution(*QRandomGenerator::global())]);
     }
-    //Сборка пароля
-    for (int i=0; i<len_string; i++)
+
+    //Перемешивание элементов пароля
+    for (int i = length_pas-1; i>0; i--)
     {
-        generated_password[i]=QChar(gen_symbol[i]);
+        std::uniform_int_distribution<int>distribution1(0, i);
+        int rand = distribution1(*QRandomGenerator::global());
+        if (i != rand)
+        {
+            QChar charElem = generated_password[i];
+            generated_password[i] = generated_password[rand];
+            generated_password[rand] = charElem;
+        }
     }
     return generated_password;
 }
+
 
 /*
 void Tab_template::data_filling(int id)
