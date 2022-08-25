@@ -15,7 +15,7 @@
 
 
 ## DEMO
-[![DEMO of application](./demo.png)](/video_description_of_app.mp4)
+![DEMO of application](/video_description_of_app_gif.gif)
 
 
 ## Technologies used
