@@ -15,6 +15,7 @@
 
 
 ## DEMO
+[video description](https://github.com/ilya-filatov-94/PasswordManager/blob/main/video_description_of_app.mp4)
 ![DEMO of application](./video_description_of_app_gif.gif "DEMO of application")
 
 
