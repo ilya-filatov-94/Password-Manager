@@ -15,7 +15,7 @@
 
 
 ## DEMO
-![DEMO of application](/video_description_of_app_gif.gif)
+![DEMO of application](https://github.com/ilya-filatov-94/PasswordManager/blob/main/video_description_of_app_gif.gif)
 
 
 ## Technologies used
