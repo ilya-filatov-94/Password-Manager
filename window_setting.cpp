@@ -417,11 +417,15 @@ bool Window_setting::eventFilter(QObject *obj, QEvent *event)   //Фильтр �
 void Window_setting::difficult_of_passw()
 {
     QString enter_pas=enter_new_pas->text();    //введённый пароль
-    QChar array_enter_pas[300];                 //массив символов пароля
-    int difficult_of_pas=0;                     //Вычисляемая сложность пароля
+    //Массив самых простых паролей
+    const int sizeArraySimplePasswords = 33;
+    QString array_easy_pas[sizeArraySimplePasswords]={"hello", "0123456789", "9876543210", "1234", "4567", "6789", "9876", "4321", "привет", "qwerty", "пароль", "йцукен", "asdfgh", "password", "ytrewq", "zxcvb", "1q2w3e", "dragon", "monkey", "qazwsx", "iloveyou", "pass", "default", "admin", "guest", "911", "314159", "271828", "122358", "Mypassword", "smoke", "sun", "mypas"};
+
+    bool simplePas = false;
     int counter_letters=0;                      //количество символов в пароле
     int counter_digits=0;                       //количество цифр в пароле
     int counter_spec_symbol=0;                  //количество спец символов в пароле
+    QFont font2("Times", 7, QFont::Normal);
 
     //Ограничение длины вводимого пароля
     if (enter_pas.size()>300)
@@ -432,64 +436,61 @@ void Window_setting::difficult_of_passw()
     //Определение сложности вводимого мастер-пароля
     if (enter_pas.size()>1)
     {
-        for (int i=0; i<32; i++)
+        for (int i=0; i<(sizeArraySimplePasswords-1); i++)
         {
-            if (enter_pas.contains(array_easy_pas[i], Qt::CaseInsensitive) or enter_pas.size()<7)
-            //Найден простой, либо слишком короткий пароль
+            if (enter_pas.contains(array_easy_pas[i], Qt::CaseInsensitive)) //Найдено часто используемое слово в пароле
             {
-                difficult_of_pas=1;
+                simplePas = true;
                 label_difficult_passw->clear();
-                label_difficult_passw->setText("<img src=':/img/bad_pas2.png'>");
+                label_difficult_passw->setText("<img src=':/img/bad_pas3.png'>");
+                label_difficult_passw->setFixedWidth(394);
                 break;
             }
         }
         //подсчёт количества символов, цифр и спец символов в введённой строке
         for (int i=0; i<enter_pas.size(); i++)
         {
-            array_enter_pas[i]=enter_pas[i];
-            if (array_enter_pas[i].isLetter())          //Если в введённом пароле найдена буква
+            if (enter_pas[i].isLetter())          //Если в введённом пароле найдена буква
                 counter_letters++;
-            else if (array_enter_pas[i].isDigit())		//Если в введённом пароле найдена цифра
+            else if (enter_pas[i].isDigit())	  //Если в введённом пароле найдена цифра
                 counter_digits++;
-        }
-        //Подсчёт кол-ва спец символов, исключаем пробелы (20) и табуляции (9)
-        for (int i=0; i<enter_pas.size(); i++)
-        {
-            if (!array_enter_pas[i].isLetter() and !array_enter_pas[i].isDigit() and array_enter_pas[i]!=QChar(20) and array_enter_pas[i]!=QChar(9))
+            //Подсчёт кол-ва спец символов, исключаем пробелы (20) и табуляции (9)
+            else if (!enter_pas[i].isLetter() and !enter_pas[i].isDigit() and enter_pas[i]!=QChar(20) and enter_pas[i]!=QChar(9))
                 counter_spec_symbol++;
         }
         //Определение сложности пароля
-        if (counter_letters>3 and counter_digits>3 and counter_spec_symbol>1 and enter_pas.size()>8 and difficult_of_pas!=1)
+        if (counter_letters>3 && counter_digits>3 && counter_spec_symbol>1 && !simplePas)
         {
-            difficult_of_pas=3;
             label_difficult_passw->clear();
             label_difficult_passw->setText("<img src=':/img/nice_pas2.png'>");
+            label_difficult_passw->setFixedWidth(271);
         }
-        else if (counter_letters>2 and counter_digits>2 and enter_pas.size()>6 and difficult_of_pas!=1)
+        else if (counter_letters>2 && counter_digits>2 && enter_pas.size()>7 && !simplePas)
         {
-            difficult_of_pas=2;
             label_difficult_passw->clear();
             label_difficult_passw->setText("<img src=':/img/good_pas2.png'>");
+            label_difficult_passw->setFixedWidth(271);
         }
-        else
+        else if (enter_pas.size()<8 && !simplePas)
         {
             label_difficult_passw->clear();
             label_difficult_passw->setText("<img src=':/img/bad_pas2.png'>");
+            label_difficult_passw->setFixedWidth(271);
         }
-        //проверка пароля на повторяющиеся символы или цифры и будем выводить сообщение об этом
+        //проверка пароля на повторяющиеся подряд элементы (от 3-ёх подряд)
         if (repeating_sequence(enter_pas))
         {
             label_difficult_passw->clear();
-            label_difficult_passw->setFixedWidth(500);
             label_difficult_passw->setText("Введённый пароль содержит повтояющиеся подряд элементы");
+            label_difficult_passw->setFont(font2);
+            label_difficult_passw->setFixedWidth(500);
         }
-        else
-            label_difficult_passw->setFixedWidth(271);
     }
     else if (enter_pas.isEmpty())
     {
         label_difficult_passw->clear();
         label_difficult_passw->setText("<img src=':/img/emptiness2.png'>");
+        label_difficult_passw->setFixedWidth(271);
     }
 }
 //Проверка на повторяющиеся подряд элементы
@@ -509,7 +510,7 @@ bool Window_setting::repeating_sequence(QString enter_string)
             }
         }
     }
-    if (counter_repeating>=2)
+    if (counter_repeating>=2)   //считаем повторяющейся последовательностью - идущие 3 подряд символа и больше
         return true;
     else
         return false;

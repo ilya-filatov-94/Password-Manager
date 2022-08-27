@@ -17,5 +17,6 @@
         <file>img/closed_lock.png</file>
         <file>img/open_lock.png</file>
         <file>img/white_glossy_SW.jpg</file>
+        <file>img/bad_pas3.png</file>
     </qresource>
 </RCC>

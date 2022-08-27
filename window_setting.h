@@ -62,7 +62,7 @@ private:
     void read_setting_mail(int&, QString&);
     void save_mail_status();
     void save_mail();
-    QString password_generator(int);                  //метод для генерации пароля
+    QString password_generator(int);               //метод для генерации пароля
     bool repeating_sequence(QString);              //проверка на повторяющиеся подряд последовательности
     void check_address_mail(QString);              //проверка корректности введённого адреса email
     void dialog_message();
@@ -85,13 +85,11 @@ private:
     QPushButton* generate_pas;
     const int length_pas=15;             //Длина генерируемого пароля
 
-    QPushButton* save_settings;         //кнопка сохранения настроек
+    QPushButton* save_settings;          //кнопка сохранения настроек
     QPushButton* cancel_settings;        //кнопка закрытия окна
 
     //Определение сложности пароля
     QLabel* label_difficult_passw;      //Текущая сложость пароля
-    //Массив самых простых паролей
-    QString array_easy_pas[33]={"hello", "0123456789", "9876543210", "1234", "4567", "6789", "9876", "4321", "привет", "qwerty", "пароль", "йцукен", "asdfgh", "password", "ytrewq", "zxcvb", "1q2w3e", "dragon", "monkey", "qazwsx", "iloveyou", "pass", "default", "admin", "guest", "911", "314159", "271828", "122358", "Mypassword", "smoke", "sun", "mypas"};
 
     //добавление аутентификации по эл. почте
     QCheckBox* check_box_for_email;     //Checkbox для установки/снятия настройки аутентификация по email
