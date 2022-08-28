@@ -651,22 +651,3 @@ QString Tab_template::password_generator(int length_pas) {
     }
     return generated_password;
 }
-
-
-/*
-void Tab_template::data_filling(int id)
-{
-    int current_index = id*2+1;
-
-    name_resourse1->setText(tr("ресурс")+QString::number(current_index));
-    login_line1->setText(tr("логин")+QString::number(current_index));
-    passw_line1->setText(tr("пароль")+QString::number(current_index));
-
-    current_index = id*2+2;
-
-    name_resourse2->setText(tr("ресурс")+QString::number(current_index));
-    login_line2->setText(tr("логин")+QString::number(current_index));
-    passw_line2->setText(tr("пароль")+QString::number(current_index));
-
-}
-*/
