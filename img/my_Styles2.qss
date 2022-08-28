@@ -246,6 +246,10 @@ QWidget#Setting_window QLineEdit
     color: black;
 }
 
-
+QToolTip
+{
+    background-color: #ebeff2;
+    border: 0px;
+}
 
 

@@ -17,6 +17,7 @@
 #include <QImage>
 #include <QShortcut>
 #include <QKeySequence>
+#include <QToolTip>
 
 
 class Tab_template : public QMainWindow, protected DataManagement
@@ -42,6 +43,8 @@ private:
 
     QWidget* widget;
     bool dataChanged;                              //флаг изменения данных на вкладке
+    void difficult_of_passw(QLineEdit*);
+    bool repeating_sequence(QString);
     void setVisiblePas();
     QString password_generator(int);
     const int length_pas=10;

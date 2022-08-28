@@ -421,9 +421,9 @@ void Window_setting::difficult_of_passw()
     QFont font2("Times", 7, QFont::Normal);
 
     //Ограничение длины вводимого пароля
-    if (enter_pas.size()>300)
+    if (enter_pas.size()>288)
     {
-        enter_pas.truncate(300);
+        enter_pas.truncate(288);
         enter_new_pas->setText(enter_pas);
     }
     //Определение сложности вводимого мастер-пароля

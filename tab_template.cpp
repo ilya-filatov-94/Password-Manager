@@ -232,6 +232,7 @@ void Tab_template::slot_check_size_line()
         str=passw_line1->text();
         str.truncate(288);
         passw_line1->setText(str);
+        difficult_of_passw(passw_line1);
     }
 
     if ((name_resourse2->hasFocus())==true)
@@ -253,6 +254,7 @@ void Tab_template::slot_check_size_line()
         str=passw_line2->text();
         str.truncate(288);
         passw_line2->setText(str);
+        difficult_of_passw(passw_line2);
     }
     dataChanged = true;
 }
@@ -513,6 +515,87 @@ void Tab_template::timeout4_clipboard()
         QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
     }
     timer4_clipboard.stop();
+}
+
+void Tab_template::difficult_of_passw(QLineEdit* line)
+{
+    QString enter_pas=line->text();                         //введённый пароль
+    QPoint tooltipPos = line->mapToGlobal(QPoint(0,10));    //расположение всплывающей подсказки
+    QFont font2("Times", 7, QFont::Normal);                 //шрифт всплывающей подсказки
+    //Массив самых простых паролей
+    const int sizeArraySimplePasswords = 33;
+    QString array_easy_pas[sizeArraySimplePasswords]={"hello", "0123456789", "9876543210", "1234", "4567", "6789", "9876", "4321", "привет", "qwerty", "пароль", "йцукен", "asdfgh", "password", "ytrewq", "zxcvb", "1q2w3e", "dragon", "monkey", "qazwsx", "iloveyou", "pass", "default", "admin", "guest", "911", "314159", "271828", "122358", "Mypassword", "smoke", "sun", "mypas"};
+
+    bool simplePas = false;
+    int counter_letters=0;                      //количество символов в пароле
+    int counter_digits=0;                       //количество цифр в пароле
+    int counter_spec_symbol=0;                  //количество спец символов в пароле
+
+    //Определение сложности вводимого мастер-пароля
+    if (enter_pas.size()>1)
+    {
+        for (int i=0; i<(sizeArraySimplePasswords-1); i++)
+        {
+            if (enter_pas.contains(array_easy_pas[i], Qt::CaseInsensitive)) //Найдено часто используемое слово в пароле
+            {
+                simplePas = true;
+                QToolTip::showText(tooltipPos, "<img src=':/img/bad_pas3.png'>", this);
+                break;
+            }
+        }
+        //подсчёт количества символов, цифр и спец символов в введённой строке
+        for (int i=0; i<enter_pas.size(); i++)
+        {
+            if (enter_pas[i].isLetter())          //Если в введённом пароле найдена буква
+                counter_letters++;
+            else if (enter_pas[i].isDigit())	  //Если в введённом пароле найдена цифра
+                counter_digits++;
+            //Подсчёт кол-ва спец символов, исключаем пробелы (20) и табуляции (9)
+            else if (!enter_pas[i].isLetter() and !enter_pas[i].isDigit() and enter_pas[i]!=QChar(20) and enter_pas[i]!=QChar(9))
+                counter_spec_symbol++;
+        }
+        //Определение сложности пароля
+        if (counter_letters>3 && counter_digits>3 && counter_spec_symbol>1 && !simplePas)
+        {
+            QToolTip::showText(tooltipPos, "<img src=':/img/nice_pas2.png'>", this);
+        }
+        else if (counter_letters>2 && counter_digits>2 && enter_pas.size()>7 && !simplePas)
+        {
+            QToolTip::showText(tooltipPos, "<img src=':/img/good_pas2.png'>", this);
+        }
+        else if (enter_pas.size()<8 && !simplePas)
+        {
+            QToolTip::showText(tooltipPos, "<img src=':/img/bad_pas2.png'>", line);
+        }
+        //проверка пароля на повторяющиеся подряд элементы (от 3-ёх подряд)
+        if (repeating_sequence(enter_pas))
+        {
+            QToolTip::showText(tooltipPos, "Введённый пароль содержит повтояющиеся подряд элементы", this);
+        }
+    }
+}
+
+//Проверка на повторяющиеся подряд элементы
+bool Tab_template::repeating_sequence(QString enter_string)
+{
+    int counter_repeating=0;                //счётчик повторений элементов
+    for (int i=0; i<enter_string.size(); i++)
+    {
+        if (i>0)
+        {
+            if (enter_string[i]==enter_string[i-1])
+                counter_repeating++;
+            else
+            {
+                if (counter_repeating==1)
+                counter_repeating=0;
+            }
+        }
+    }
+    if (counter_repeating>=2)   //считаем повторяющейся последовательностью - идущие 3 подряд символа и больше
+        return true;
+    else
+        return false;
 }
 
 QString Tab_template::password_generator(int length_pas) {
