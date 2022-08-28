@@ -7,8 +7,7 @@ Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
     Setting_window->setObjectName("Setting_window");
 
     //Виджеты показа текущего пароля
-    label_saved_passw = new QLabel(this);
-    label_saved_passw->setText(tr("Текущий мастер-пароль:"));
+    label_saved_passw = new QLabel(tr("Текущий мастер-пароль:"), this);
     enter_old_pas = new QLineEdit(this);
     enter_old_pas->setFixedWidth(550);
 
@@ -49,12 +48,10 @@ Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
     horizontal_old_pas->setAlignment(visibleNewPas, Qt::AlignTop);
 
     //Кнопки управления окном
-    save_settings = new QPushButton(this);
-    save_settings->setText(tr("Сохранить настройки"));
+    save_settings = new QPushButton(tr("Сохранить настройки"), this);
     save_settings->setFixedWidth(200);
     connect(save_settings, SIGNAL(clicked()), this, SLOT(save()));
-    cancel_settings = new QPushButton(this);
-    cancel_settings->setText(tr("Отмена"));
+    cancel_settings = new QPushButton(tr("Отмена"), this);
     cancel_settings->setFixedWidth(200);
     connect(cancel_settings, SIGNAL(clicked()), this, SLOT(cancel()));
 
@@ -67,8 +64,7 @@ Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
     //Виджеты генерации пароля
     label_generate_pasw = new QLabel(this);
     label_generate_pasw->setText(tr("Для автоматического создания мастер-пароля нажмите кнопку"));
-    generate_pas = new QPushButton(this);
-    generate_pas->setText(tr("Генерировать пароль"));
+    generate_pas = new QPushButton(tr("Генерировать пароль"), this);
     connect(generate_pas, SIGNAL(clicked()), this, SLOT(gen_master_passw()));
 
     //-----Компоновка виджетов запроса пароля в БД------------
@@ -81,12 +77,10 @@ Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
     label_check_pas_DB->setText(tr("Приложение использует базу данных авторитетного сервиса "
                                     "<a href='https://haveibeenpwned.com/'>Have I Been Pwned</a>,"
                                     "<br>который накапливает информацию об утекших в сеть паролях"));
-    button_request_DB = new QPushButton(this);
-    button_request_DB->setText(tr("Проверить пароль"));
+    button_request_DB = new QPushButton(tr("Проверить пароль"), this);
     button_request_DB->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     connect(button_request_DB, SIGNAL(clicked()), this, SLOT(slot_request_pas()));
-    label_result_DB = new QLabel(this);
-    label_result_DB->setText(tr("Результат запроса пароля в БД:"));
+    label_result_DB = new QLabel(tr("Результат запроса пароля в БД:"), this);
     horizontal_group = new QHBoxLayout();
     horizontal_group->setSpacing(10);
     horizontal_group->addWidget(button_request_DB);
@@ -104,8 +98,7 @@ Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
     check_box_for_email = new QCheckBox(this);
     change_status_mail=false;
     connect(check_box_for_email,SIGNAL(toggled(bool)), this, SLOT(visible_checkbox()));
-    label_checkbox = new QLabel(this);
-    label_checkbox->setText(tr("Аутентификация по электронной почте"));
+    label_checkbox = new QLabel(tr("Аутентификация по электронной почте"), this);
     label_email = new QLabel(this);
     enter_address_mail = new QLineEdit(this);
     connect(enter_address_mail, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
@@ -124,7 +117,7 @@ Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
     //Компоновка виджетов ввода нового пароля
     groupBox_new_pas = new QGroupBox(this);
     groupBox_new_pas->setTitle(tr("Введите новый мастер-пароль:"));        //группа с рамкой
-    vertical_new_pas = new QVBoxLayout();    //вертикальное размещение 1
+    vertical_new_pas = new QVBoxLayout();
     vertical_new_pas->setMargin(10);                    //Толщина рамки
     vertical_new_pas->setSpacing(5);                    //Расстояние между виджетами
     vertical_new_pas->addLayout(horizontal_new_pas);
@@ -621,7 +614,11 @@ void Window_setting::slot_check_size_line()
     if ((enter_address_mail->hasFocus())==true)
     {
         str=enter_address_mail->text();
-        str.truncate(300);
+        //Ячейки SQL таблицы ограничены 300 символами
+        //(кодируется unicode - по 2 байта каждый - исключаем специфические вроде смайлов и иероглифов)
+        //В алгоритме AES-256 режим CBC длина блока 16 байт
+        //Ограничимся 18-ю блоками - 288 символов. Если будет 19 блоков - 304 символа - выход за пределы SQL таблицы
+        str.truncate(288);
         enter_address_mail->setText(str);
     }
 }

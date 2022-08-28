@@ -31,8 +31,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     horizontal0->addWidget(visiblePassw);
 
     //Состояние Caps Lock
-    label_state_capslock = new QLabel(this);
-    label_state_capslock ->setText(tr("                        "));
+    label_state_capslock = new QLabel(tr("                        "), this);
     key_capslock = new QShortcut(this);
     key_capslock->setKey(Qt::Key_CapsLock);
     connect(key_capslock, SIGNAL(activated()), this, SLOT(push_capslock()));      //По нажатию на клавишу capslock выводить надпись
@@ -47,25 +46,21 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(timer1, SIGNAL(timeout()), this, SLOT(slotTimeout()));      //Соединение со слотом отсчёта времени
 
     //Время обратного отсчёта|кнопка повторной отправки сообщения
-    countdown_timer = new QLabel(this);
-    countdown_timer->setText(tr("                        "));
+    countdown_timer = new QLabel(tr("                        "), this);
     countdown_timer->setMargin(6);
-    resending_message = new QPushButton(this);
-    resending_message->setText(tr("Отправить код"));
+    resending_message = new QPushButton(tr("Отправить код"), this);
     resending_message->setFixedWidth(195);
     connect(resending_message, SIGNAL(clicked()), this, SLOT(slot_restart_Timer()));
     resending_message->setVisible(false);              //Инициализация видимости
 
     //Кнопки ОК и Cancel
-    ok = new QPushButton(this);
-    ok->setText(tr("Ok"));      //Подтверждение ввода
+    ok = new QPushButton(tr("Ok"), this);
     connect(ok, SIGNAL(clicked()), this, SLOT(slot_requestReadData()));
     key_enter = new QShortcut(this);
     key_enter->setKey(Qt::Key_Return);
     connect(key_enter, SIGNAL(activated()), this, SLOT(slot_requestReadData()));
 
-    cancel = new QPushButton(this);
-    cancel->setText(tr("Cancel"));      //Закрытие приложения
+    cancel = new QPushButton(tr("Cancel"), this);
     connect(cancel, SIGNAL(clicked()), this, SLOT(close_window()));
 
     groupBox1 = new QGroupBox(this);
@@ -487,13 +482,17 @@ void MainWindow::slot_check_size_line()
     if ((line_enter_pas->hasFocus())==true)
     {
         str=line_enter_pas->text();
-        str.truncate(300);
+        //Ячейки SQL таблицы ограничены 300 символами
+        //(кодируется unicode - по 2 байта каждый - исключаем специфические вроде смайлов и иероглифов)
+        //В алгоритме AES-256 режим CBC длина блока 16 байт
+        //Ограничимся 18-ю блоками - 288 символов
+        str.truncate(288);
         line_enter_pas->setText(str);
     }
     if ((line_enter_code->hasFocus())==true)
     {
         str=line_enter_code->text();
-        str.truncate(300);
+        str.truncate(288);
         line_enter_code->setText(str);
     }
 }
