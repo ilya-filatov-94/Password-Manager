@@ -303,7 +303,8 @@ void Tab_template::write_data_tab(QSqlDatabase& db, int index_tab)
     dataChanged = false;    //изменения вкладки сохранены
 }
 
-/*
+/* Удаление и после создание строки SQL таблицы замедляет удаление вкладок и сохранение данных
+Оптимальнее не удалять, а перезаписывать созданные строки SQL таблицы
 void Tab_template::delete_data_tab(QSqlDatabase& db, int index_tab)
 {
     QSqlQuery query;
