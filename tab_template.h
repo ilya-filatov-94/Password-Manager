@@ -97,10 +97,7 @@ private:
 
     //Для копирования в буфер обмена
     QMimeData mime;
-    QTimer timer1_clipboard;
-    QTimer timer2_clipboard;
-    QTimer timer3_clipboard;
-    QTimer timer4_clipboard;
+    QTimer timer_clipboard;
 
 private slots:
 
@@ -110,15 +107,8 @@ private slots:
     void changeVisiblePas2();
     void generate_passw1();
     void generate_passw2();
-
-    void copy_login1();
-    void copy_passw1();
-    void copy_login2();
-    void copy_passw2();
-    void timeout1_clipboard();
-    void timeout2_clipboard();
-    void timeout3_clipboard();
-    void timeout4_clipboard();
+    void timeout_clipboard();
+    void abstractCopyData();
 
 signals:
 

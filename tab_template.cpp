@@ -23,7 +23,7 @@ Tab_template::Tab_template(QWidget *parent) : QMainWindow(parent)
     connect(name_resourse1, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
     btnCopyLogin1 = new QPushButton(tr("Копировать логин"), this);
     btnCopyLogin1->setFixedWidth(fixSizeButton);
-    connect(btnCopyLogin1, SIGNAL(clicked()), this, SLOT(copy_login1()));
+    connect(btnCopyLogin1, SIGNAL(clicked()), this, SLOT(abstractCopyData()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
     horizontalWidget[id_horizontal_layout]->addWidget(name_label1);
@@ -45,7 +45,7 @@ Tab_template::Tab_template(QWidget *parent) : QMainWindow(parent)
     connect(login_line1, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
     btnCopyPassw1 = new QPushButton(tr("Копировать пароль"), this);
     btnCopyPassw1->setFixedWidth(fixSizeButton);
-    connect(btnCopyPassw1, SIGNAL(clicked()), this, SLOT(copy_passw1()));
+    connect(btnCopyPassw1, SIGNAL(clicked()), this, SLOT(abstractCopyData()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
     horizontalWidget[id_horizontal_layout]->addWidget(login_label1);
@@ -99,7 +99,7 @@ Tab_template::Tab_template(QWidget *parent) : QMainWindow(parent)
     connect(name_resourse2, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
     btnCopyLogin2 = new QPushButton(tr("Копировать логин"), this);
     btnCopyLogin2->setFixedWidth(fixSizeButton);
-    connect(btnCopyLogin2, SIGNAL(clicked()), this, SLOT(copy_login2()));
+    connect(btnCopyLogin2, SIGNAL(clicked()), this, SLOT(abstractCopyData()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
     horizontalWidget[id_horizontal_layout]->addWidget(name_label2);
@@ -121,7 +121,7 @@ Tab_template::Tab_template(QWidget *parent) : QMainWindow(parent)
     connect(login_line2, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
     btnCopyPassw2 = new QPushButton(tr("Копировать пароль"), this);
     btnCopyPassw2->setFixedWidth(fixSizeButton);
-    connect(btnCopyPassw2, SIGNAL(clicked()), this, SLOT(copy_passw2()));
+    connect(btnCopyPassw2, SIGNAL(clicked()), this, SLOT(abstractCopyData()));
     horizontalWidget[id_horizontal_layout]->setMargin(5);
     horizontalWidget[id_horizontal_layout]->setSpacing(5);
     horizontalWidget[id_horizontal_layout]->addWidget(login_label2);
@@ -186,12 +186,7 @@ Tab_template::Tab_template(QWidget *parent) : QMainWindow(parent)
 
     QFont font3("Times", 14, QFont::Normal);       //параметры шрифта для наименований вкладок
     widget->setFont(font3);
-
-    //Таймеры буфера обмена
-    connect(&timer1_clipboard, &QTimer::timeout, this, &Tab_template::timeout1_clipboard);
-    connect(&timer2_clipboard, &QTimer::timeout, this, &Tab_template::timeout2_clipboard);
-    connect(&timer3_clipboard, &QTimer::timeout, this, &Tab_template::timeout3_clipboard);
-    connect(&timer4_clipboard, &QTimer::timeout, this, &Tab_template::timeout4_clipboard);
+    connect(&timer_clipboard, &QTimer::timeout, this, &Tab_template::timeout_clipboard);
 
     setCentralWidget(widget);
     setMinimumSize(500, 525);
@@ -418,106 +413,6 @@ void Tab_template::generate_passw2()
     passw_line2->setText(password_generator(length_pas));
 }
 
-void Tab_template::copy_login1()
-{
-    timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
-    if (QApplication::clipboard())
-    {
-        mime.setText(login_line1->text());
-        mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-
-        timer1_clipboard.setInterval(5000);
-        timer1_clipboard.start();
-    }
-}
-
-void Tab_template::copy_passw1()
-{
-    timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
-    if (QApplication::clipboard())
-    {
-        mime.setText(passw_line1->text());
-        mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-
-        timer2_clipboard.setInterval(5000);
-        timer2_clipboard.start();
-    }
-}
-
-void Tab_template::copy_login2()
-{
-    timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
-    if (QApplication::clipboard())
-    {
-        mime.setText(login_line2->text());
-        mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-
-        timer3_clipboard.setInterval(5000);
-        timer3_clipboard.start();
-    }
-}
-
-void Tab_template::copy_passw2()
-{
-    timer1_clipboard.stop(); timer2_clipboard.stop(); timer3_clipboard.stop(); timer4_clipboard.stop();
-    if (QApplication::clipboard())
-    {
-        mime.setText(passw_line2->text());
-        mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-
-        timer4_clipboard.setInterval(5000);
-        timer4_clipboard.start();
-    }
-}
-
-void Tab_template::timeout1_clipboard()
-{
-    QString inputStr = login_line1->text();
-    if (inputStr == QApplication::clipboard()->text(QClipboard::Clipboard) || inputStr == QApplication::clipboard()->text(QClipboard::Selection))
-    {
-        mime.setText("");
-        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-    }
-    timer1_clipboard.stop();
-}
-
-void Tab_template::timeout2_clipboard()
-{
-    QString inputStr = passw_line1->text();
-    if (inputStr == QApplication::clipboard()->text(QClipboard::Clipboard) || inputStr == QApplication::clipboard()->text(QClipboard::Selection))
-    {
-        mime.setText("");
-        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-    }
-    timer2_clipboard.stop();
-}
-
-void Tab_template::timeout3_clipboard()
-{
-    QString inputStr = login_line2->text();
-    if (inputStr == QApplication::clipboard()->text(QClipboard::Clipboard) || inputStr == QApplication::clipboard()->text(QClipboard::Selection))
-    {
-        mime.setText("");
-        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-    }
-    timer3_clipboard.stop();
-}
-
-void Tab_template::timeout4_clipboard()
-{
-    QString inputStr = passw_line2->text();
-    if (inputStr == QApplication::clipboard()->text(QClipboard::Clipboard) || inputStr == QApplication::clipboard()->text(QClipboard::Selection))
-    {
-        mime.setText("");
-        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-    }
-    timer4_clipboard.stop();
-}
-
 void Tab_template::difficult_of_passw(QLineEdit* line)
 {
     QString enter_pas=line->text();                         //введённый пароль
@@ -651,4 +546,64 @@ QString Tab_template::password_generator(int length_pas) {
         }
     }
     return generated_password;
+}
+
+void Tab_template::abstractCopyData()
+{
+    timer_clipboard.stop();
+    QObject* object = QObject::sender();
+    if (object == btnCopyLogin1)
+    {
+        if (QApplication::clipboard())
+        {
+            mime.setText(login_line1->text());
+            mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+            QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+            timer_clipboard.setInterval(5000);
+            timer_clipboard.start();
+        }
+    }
+
+    if (object == btnCopyPassw1)
+    {
+        if (QApplication::clipboard())
+        {
+            mime.setText(passw_line1->text());
+            mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+            QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+            timer_clipboard.setInterval(5000);
+            timer_clipboard.start();
+        }
+    }
+
+    if (object == btnCopyLogin2)
+    {
+        if (QApplication::clipboard())
+        {
+            mime.setText(login_line2->text());
+            mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+            QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+            timer_clipboard.setInterval(5000);
+            timer_clipboard.start();
+        }
+    }
+
+    if (object == btnCopyPassw2)
+    {
+        if (QApplication::clipboard())
+        {
+            mime.setText(passw_line2->text());
+            mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+            QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+            timer_clipboard.setInterval(5000);
+            timer_clipboard.start();
+        }
+    }
+}
+
+void Tab_template::timeout_clipboard()
+{
+    mime.setText("");
+    QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+    timer_clipboard.stop();
 }
