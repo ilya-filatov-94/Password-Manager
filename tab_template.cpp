@@ -65,6 +65,7 @@ Tab_template::Tab_template(QWidget *parent) : QMainWindow(parent)
     passw_label1->setFixedWidth(fixSizeLabel);
     passw_line1 = new QLineEdit(this);
     passw_line1->setPlaceholderText(tr("Введите пароль"));
+    passw_line1->setEchoMode(QLineEdit::Password);
     connect(passw_line1, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
     visiblePassw1 = new QPushButton(this);
     visiblePassw1->setIcon(QIcon(":/img/closed_lock.png"));
@@ -141,6 +142,7 @@ Tab_template::Tab_template(QWidget *parent) : QMainWindow(parent)
     passw_label2->setFixedWidth(fixSizeLabel);
     passw_line2 = new QLineEdit(this);
     passw_line2->setPlaceholderText(tr("Введите пароль"));
+    passw_line2->setEchoMode(QLineEdit::Password);
     connect(passw_line2, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
     visiblePassw2 = new QPushButton(this);
     visiblePassw2->setIcon(QIcon(":/img/closed_lock.png"));
