@@ -554,50 +554,30 @@ void Tab_template::abstractCopyData()
     QObject* object = QObject::sender();
     if (object == btnCopyLogin1)
     {
-        if (QApplication::clipboard())
-        {
-            mime.setText(login_line1->text());
-            mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-            QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-            timer_clipboard.setInterval(5000);
-            timer_clipboard.start();
-        }
+    	mime.setText(login_line1->text());
     }
-
     if (object == btnCopyPassw1)
     {
-        if (QApplication::clipboard())
-        {
-            mime.setText(passw_line1->text());
-            mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-            QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-            timer_clipboard.setInterval(5000);
-            timer_clipboard.start();
-        }
+    	mime.setText(passw_line1->text());
     }
-
     if (object == btnCopyLogin2)
     {
-        if (QApplication::clipboard())
-        {
-            mime.setText(login_line2->text());
-            mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-            QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-            timer_clipboard.setInterval(5000);
-            timer_clipboard.start();
-        }
+    	mime.setText(login_line2->text());
     }
-
     if (object == btnCopyPassw2)
     {
-        if (QApplication::clipboard())
-        {
-            mime.setText(passw_line2->text());
-            mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
-            QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
-            timer_clipboard.setInterval(5000);
-            timer_clipboard.start();
-        }
+    	mime.setText(passw_line2->text());
+    }
+
+    if (QApplication::clipboard())
+    {
+    	mime.setData("ExcludeClipboardContentFromMonitorProcessing", QByteArrayLiteral("1"));
+        QApplication::clipboard()->setMimeData(&mime, QClipboard::Clipboard);
+        timer_clipboard.setInterval(5000);
+        timer_clipboard.start();
+    }
+    else {
+    	mime.setText("");
     }
 }
 
