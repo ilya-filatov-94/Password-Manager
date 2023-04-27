@@ -13,7 +13,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QBoxLayout>
-#include <QPixmap>          //для создания объекта изображения
+#include <QPixmap>
 #include <QImage>
 #include <QShortcut>
 #include <QKeySequence>
@@ -28,9 +28,9 @@ public:
     explicit Tab_template(QWidget *parent=nullptr);
     ~Tab_template() override;
 
-    void read_data_tab(QSqlDatabase&, int);                    //метод чтения данных
-    void write_data_tab(QSqlDatabase&, int);                   //метод записи данных
-    //void delete_data_tab(QSqlDatabase&, int);                //метод удаления данных
+    void read_data_tab(QSqlDatabase&, int);
+    void write_data_tab(QSqlDatabase&, int);
+    //void delete_data_tab(QSqlDatabase&, int);
     bool get_flag_change_tab();                                //Проверка для Client_window были ли изменения данных на вкладках
     void save_tab_change(QSqlDatabase&, int);                  //сохраняет данные вкладок у которых флаг изменения true
 
@@ -42,14 +42,14 @@ public:
 private:
 
     QWidget* widget;
-    bool dataChanged;                              //флаг изменения данных на вкладке
+    bool dataChanged;
     void difficult_of_passw(QLineEdit*);
-    bool repeating_sequence(QString);
+    bool check_repeating_sequence(QString);
     void setVisiblePas();
     QString password_generator(int);
     const int length_pas=10;
 
-    //Размеры и компонока виджетов вкладки
+    //Размеры и компоновка виджетов вкладки
     int id_template_widget;
     QWidget* templateWidget[6];
     int fixedHeightTemplateWidget;
@@ -95,14 +95,13 @@ private:
     QPushButton* save_change_page;
     QVBoxLayout* verticalWidget;
 
-    //Для копирования в буфер обмена
     QMimeData mime;
     QTimer timer_clipboard;
 
 private slots:
 
     void save_data_tab();
-    void slot_check_size_line();                    //проверка длины вводимого текста
+    void slot_check_size_line();
     void changeVisiblePas1();
     void changeVisiblePas2();
     void generate_passw1();
