@@ -10,254 +10,214 @@ DataManagement:: ~DataManagement()
 {
 }
 
-bool DataManagement::readDataSQL(QSqlDatabase& db, QSqlQuery& query1, int id, QString& name, QString& login, QString& pas)
+bool DataManagement::readDataSQL(QSqlDatabase& db, QSqlQuery& query, int id, QString& name, QString& login, QString& pas)
 {
-    QByteArray decArr[3] = {"", "", ""};
-    if (!db.tables().contains(QLatin1String("datatable")))  //Проверка существует ли такая таблица в БД
-    {
-        return false;
-    }
-    query1.exec(QString("select exists (select * from datatable where id = '%1');").arg(id));
-    query1.next();
-    if (query1.value(0) !=0)    //Запись с данным id существует в таблице
-    {
-        query1.exec(QString("select * from datatable where id = '%1'").arg(id));
-        QSqlRecord rec = query1.record();
-        int i=0;
-        while ((query1.next())&&(i<id))
-        {
-            decArr[i] = query1.value(rec.indexOf("name_resource")).toByteArray();
-            decArr[i+1] = query1.value(rec.indexOf("login_resource")).toByteArray();
-            decArr[i+2] = query1.value(rec.indexOf("password_resource")).toByteArray();
-            i+=3;
-        }
-        QByteArray keyN, vectorN;
-        if (readDataSQL_vectorsTable(db, query1, id, keyN, vectorN))
-        {
-            name = decryptAES(decArr[0], keyN, vectorN);
-            login = decryptAES(decArr[1], keyN, vectorN);
-            pas = decryptAES(decArr[2], keyN, vectorN);
-            query1.clear();
-            return true;
-        }
-        else {
-            query1.clear();
-            return false;
-        }
-    }
-    else
-    {
-        query1.clear();
-        return false;
-    }
-}
-
-void DataManagement::writeDataSQL(QSqlDatabase& db, QSqlQuery& query1, int id, QString& name, QString& login, QString& pas)
-{
-    QByteArray encdArr[3] = {"", "", ""};
-    QByteArray keyN, vectorN;
-    generatorObj.generatePairKey(keyN, vectorN);     //Генерируем ключ и вектор
-
-    encdArr[0] = encryptAES(name, keyN, vectorN);
-    encdArr[1] = encryptAES(login, keyN, vectorN);
-    encdArr[2] = encryptAES(pas, keyN, vectorN);
-
-    if (!db.tables().contains(QLatin1String("datatable")))  //Проверка существует ли такая таблица в БД
-    {
-        query1.exec("create table datatable (id int primary key, name_resource nvarchar(300), login_resource nvarchar(300), password_resource nvarchar(300))");
-    }
-    //Проверка существования записи с нужным id
-    query1.exec(QString("select exists (select name_resource from datatable where id = '%1');").arg(id));
-    query1.next();
-    if (query1.value(0) !=0)    //Запись с данным id существовала уже в БД
-    {
-        query1.prepare(QString("update datatable set name_resource=?, login_resource=?, password_resource=? where id ='%1'").arg(id));
-        query1.addBindValue(encdArr[0]);
-        query1.addBindValue(encdArr[1]);
-        query1.addBindValue(encdArr[2]);
-        if (!query1.exec()) {
-            query1.clear();
-        }
-    }
-    else
-    {
-        query1.prepare("insert into datatable (id, name_resource, login_resource, password_resource) values (?, ?, ?, ?)");
-        query1.addBindValue(id);
-        query1.addBindValue(encdArr[0]);
-        query1.addBindValue(encdArr[1]);
-        query1.addBindValue(encdArr[2]);
-        if (!query1.exec()) {
-            query1.clear();
-        }
-    }
-    if (writeDataSQL_vectorsTable(db, query1, id, "key"+QString::number(id), keyN, "iv"+QString::number(id), vectorN))  {
-        query1.clear();
-    }
-    else {
-        query1.clear();
-    }
-}
-
-bool DataManagement::deleteDataSQL(QSqlDatabase& db, QSqlQuery& query1, int id)
-{
-    if (!db.tables().contains(QLatin1String("datatable")))  //Проверка существует ли такая таблица в БД
-    {
-        query1.clear();
-        return true;
-    }
-    query1.exec(QString("select exists (select * from datatable where id = '%1');").arg(id));
-    query1.next();
-    if (query1.value(0) !=0)
-    {
-        if (!query1.exec(QString("delete from datatable where id = '%1'").arg(id))) {
-            query1.clear();
-            return false;
-        }
-        else {
-            if (deleteDataSQL_vectorsTable(db, query1, id))
-                {
-                query1.clear();
-                return true;}
-            else {
-                query1.clear();
-                return false;}
-        }
-    }
-    else
-    {
-        query1.clear();
-        return true;
-    }
-}
-
-bool DataManagement::deleteDataSQL_vectorsTable(QSqlDatabase& db, QSqlQuery& query, int id)
-{
-    if (!db.tables().contains(QLatin1String("vectorstable")))  //Проверка существует ли такая таблица в БД
-    {
+    QByteArray data1, data2, data3, key, vector;
+    if (!readDataSQL_dataTable(db, query, id, data1, data2, data3)) {
         query.clear();
-        return true;
+        return false;
     }
-    query.exec(QString("select exists (select * from vectorstable where id = '%1');").arg(id));
+    if (!readDataSQL_keysTable(db, query, id, key, vector)) {
+        query.clear();
+        return false;
+    }
+    name = decryptAES(data1, key, vector);
+    login = decryptAES(data2, key, vector);
+    pas = decryptAES(data3, key, vector);
+    query.clear();
+    return true;
+}
+
+void DataManagement::writeDataSQL(QSqlDatabase& db, QSqlQuery& query, int id, QString& name, QString& login, QString& pas)
+{
+    QByteArray data1, data2, data3, key, vector;
+    generatorObj.generatePairKey(key, vector);
+    data1 = encryptAES(name, key, vector);
+    data2 = encryptAES(login, key, vector);
+    data3 = encryptAES(pas, key, vector);
+    if (!writeDataSQL_dataTable(db, query, id, data1, data2, data3)) {
+        query.clear();
+    }
+    if (!writeDataSQL_keysTable(db, query, id, key, vector))  {
+        query.clear();
+    }
+    query.clear();
+}
+
+bool DataManagement::readDataSQL_dataTable(QSqlDatabase& db, QSqlQuery& query, int id, QByteArray& name, QByteArray& login, QByteArray& pas)
+{
+    if (!db.tables().contains(QLatin1String("datatable"))) {
+        return false;
+    }
+    query.exec(QString("select exists (select name_resource, login_resource, password_resource from datatable where id = '%1');").arg(id));
     query.next();
-    if (query.value(0) !=0)
-    {
-        if (!query.exec(QString("delete from vectorstable where id = '%1'").arg(id))) {
-            query.clear();
-            return false;
-        }
-        else {
-            query.clear();
-            return true;}
-    }
-    else {
-        query.clear();
-        return true;
-    }
-}
-
-bool DataManagement::writeDataSQL_vectorsTable(QSqlDatabase& db, QSqlQuery& query, int id, QString parameter1, QByteArray value1, QString parameter2, QByteArray value2)
-{
-    if (!db.tables().contains(QLatin1String("vectorstable")))  //Проверка существует ли такая таблица в БД
-    {
-        query.exec("create table vectorstable (id int primary key, parameter1 nvarchar(300), value1 nvarchar(300), parameter2 nvarchar(300), value2 nvarchar(300))");
-    }
-     //Проверка существования записи с нужным id
-     query.exec(QString("select exists (select * from vectorstable where id = '%1');").arg(id));
-     query.next();
-     if (query.value(0) !=0)
-     {
-        query.prepare(QString("update vectorstable set parameter1=?, value1=?, parameter2=?, value2=? where id ='%1'").arg(id));
-        query.addBindValue(parameter1);
-        query.addBindValue(value1);
-        query.addBindValue(parameter2);
-        query.addBindValue(value2);
-        if (!query.exec()) {
-            query.clear();
-            return false;
-        }
-        query.clear();
-        return true;
-     }
-     else
-     {
-        query.prepare("insert into vectorstable (id, parameter1, value1, parameter2, value2) values (?, ?, ?, ?, ?)");
-        query.addBindValue(id);
-        query.addBindValue(parameter1);
-        query.addBindValue(value1);
-        query.addBindValue(parameter2);
-        query.addBindValue(value2);
-
-        if (!query.exec()) {
-            query.clear();
-            return false;
-        }
-        query.clear();
-        return true;
-     }
-}
-
-bool DataManagement::readDataSQL_vectorsTable(QSqlDatabase & db, QSqlQuery& query, int id, QByteArray& value1, QByteArray& value2)
-{
-    if (!db.tables().contains(QLatin1String("vectorstable")))  //Проверка существует ли такая таблица в БД
-    {
-        query.clear();
-        return false;
-    }
-    else {
-        query.exec(QString("select exists (select * from vectorstable where id = '%1');").arg(id));
-        query.next();
-        if (query.value(0) !=0)
+    if (query.value(0) !=0) {
+        query.exec(QString("select name_resource, login_resource, password_resource from datatable where id = '%1'").arg(id));
+        QSqlRecord rec = query.record();
+        while (query.next())
         {
-            //Читаем записи с нужным параметром
-            query.exec(QString("select * from vectorstable where id = '%1'").arg(id));
-            QSqlRecord rec = query.record();
-            while (query.next())
-            {
-                value1 = query.value(rec.indexOf("value1")).toByteArray();
-                value2 = query.value(rec.indexOf("value2")).toByteArray();
-            }
+            name = query.value(rec.indexOf("name_resource")).toByteArray();
+            login = query.value(rec.indexOf("login_resource")).toByteArray();
+            pas = query.value(rec.indexOf("password_resource")).toByteArray();
+        }
+        query.clear();
+        return true;
+    }
+    query.clear();
+    return false;
+}
+
+bool DataManagement::writeDataSQL_dataTable(QSqlDatabase& db, QSqlQuery& query, int id, QByteArray name, QByteArray login, QByteArray pas)
+{
+    if (!db.tables().contains(QLatin1String("datatable"))) {
+        query.exec("create table datatable (id int primary key, name_resource nvarchar(300), login_resource nvarchar(300), password_resource nvarchar(300))");
+    }
+    query.exec(QString("select exists (select name_resource, login_resource, password_resource from datatable where id = '%1');").arg(id));
+    query.next();
+    if (query.value(0) !=0) {
+        query.prepare(QString("update datatable set name_resource=?, login_resource=?, password_resource=? where id ='%1'").arg(id));
+        query.addBindValue(name);
+        query.addBindValue(login);
+        query.addBindValue(pas);
+        if (!query.exec()) {
+            query.clear();
+            return false;
+        }
+        query.clear();
+        return true;
+    }
+    else {
+        query.prepare("insert into datatable (id, name_resource, login_resource, password_resource) values (?, ?, ?, ?)");
+        query.addBindValue(id);
+        query.addBindValue(name);
+        query.addBindValue(login);
+        query.addBindValue(pas);
+        if (!query.exec()) {
+            query.clear();
+            return false;
+        }
+        query.clear();
+        return true;
+    }
+}
+
+bool DataManagement::deleteDataSQL(QSqlDatabase& db, QSqlQuery& query, int id)
+{
+    if (!db.tables().contains(QLatin1String("datatable"))) {
+        query.clear();
+        return true;
+    }
+    query.exec(QString("select exists (select * from datatable where id = '%1');").arg(id));
+    query.next();
+    if (query.value(0) == 0) {
+        query.clear();
+        return true;
+    }
+    if (query.exec(QString("delete from datatable where id = '%1'").arg(id))) {
+        if (deleteDataSQL_keysTable(db, query, id)) {
             query.clear();
             return true;
         }
-        else {
+    }
+    query.clear();
+    return false;
+}
+
+bool DataManagement::deleteDataSQL_keysTable(QSqlDatabase& db, QSqlQuery& query, int id)
+{
+    if (!db.tables().contains(QLatin1String("keystable"))) {
+        return true;
+    }
+    query.exec(QString("select exists (select * from keystable where id = '%1');").arg(id));
+    query.next();
+    if (query.value(0) == 0) {
+        query.clear();
+        return true;
+    }
+    if (!query.exec(QString("delete from keystable where id = '%1'").arg(id))) {
+        query.clear();
+        return false;
+    }
+    query.clear();
+    return true;
+}
+
+bool DataManagement::writeDataSQL_keysTable(QSqlDatabase& db, QSqlQuery& query, int id, QByteArray value1, QByteArray value2)
+{
+    if (!db.tables().contains(QLatin1String("keystable"))) {
+        query.exec("create table keystable (id int primary key, value1 nvarchar(300), value2 nvarchar(300))");
+    }
+    query.exec(QString("select exists (select value1, value2 from keystable where id = '%1');").arg(id));
+    query.next();
+    if (query.value(0) !=0) {
+        query.prepare(QString("update keystable set value1=?, value2=? where id ='%1'").arg(id));
+        query.addBindValue(value1);
+        query.addBindValue(value2);
+        if (!query.exec()) {
             query.clear();
             return false;
         }
+        query.clear();
+        return true;
     }
+    else {
+        query.prepare("insert into keystable (id, value1, value2) values (?, ?, ?)");
+        query.addBindValue(id);
+        query.addBindValue(value1);
+        query.addBindValue(value2);
+        if (!query.exec()) {
+            query.clear();
+            return false;
+        }
+        query.clear();
+        return true;
+     }
+}
+
+bool DataManagement::readDataSQL_keysTable(QSqlDatabase& db, QSqlQuery& query, int id, QByteArray& value1, QByteArray& value2)
+{
+    if (!db.tables().contains(QLatin1String("keystable"))) {
+        return false;
+    }
+    query.exec(QString("select exists (select value1, value2 from keystable where id = '%1');").arg(id));
+    query.next();
+    if (query.value(0) !=0) {
+        query.exec(QString("select value1, value2 from keystable where id = '%1'").arg(id));
+        QSqlRecord rec = query.record();
+        while (query.next())
+        {
+            value1 = query.value(rec.indexOf("value1")).toByteArray();
+            value2 = query.value(rec.indexOf("value2")).toByteArray();
+        }
+        query.clear();
+        return true;
+    }
+    query.clear();
+    return false;
 }
 
 void DataManagement::writeDataSQL_settingTable(QSqlDatabase& db, QSqlQuery& query, int id, QString parameter, QByteArray& value)
 {
-    if (!db.tables().contains(QLatin1String("settingtable")))  //Проверка существует ли такая таблица в БД
-    {
+    if (!db.tables().contains(QLatin1String("settingtable"))) {
         query.exec("create table settingtable (id int primary key, parameter nvarchar(300), value nvarchar(300))");
     }
-     //Проверка существования записи с нужным id
-     query.exec(QString("select exists (select * from settingtable where id = '%1');").arg(id));
-     query.next();
-     if (query.value(0) !=0)    //Запись с данным id существовала уже в БД
-     {
+    query.exec(QString("select exists (select parameter, value from settingtable where id = '%1');").arg(id));
+    query.next();
+    if (query.value(0) != 0) {
         query.prepare(QString("update settingtable set parameter=?, value=? where id ='%1'").arg(id));
         query.addBindValue(parameter);
         query.addBindValue(value);
-
-        if (!query.exec()) {
-            query.clear();
-        }
+        query.exec();
         query.clear();
      }
-     else    //Запись с данным id НЕ СУЩЕСТВОВУЕТ в БД
-     {
+     else {
         query.prepare("insert into settingtable (id, parameter, value) values (?, ?, ?)");
         query.addBindValue(id);
         query.addBindValue(parameter);
         query.addBindValue(value);
-
-        if (!query.exec()) {
-            query.clear();
-        }
+        query.exec();
         query.clear();
-     }
+    }
 }
 
 QByteArray DataManagement::readDataSQL_settingTable(QSqlDatabase& db, QSqlQuery& query, QString parameter)
@@ -265,26 +225,23 @@ QByteArray DataManagement::readDataSQL_settingTable(QSqlDatabase& db, QSqlQuery&
     QByteArray value;
     if (!db.tables().contains(QLatin1String("settingtable")))  //Проверка существует ли такая таблица в БД
     {
-        return QString("Ошибка чтения, таблица не существует!").toLocal8Bit();
+        return QString("Ошибка чтения, данных не существует!").toLocal8Bit();
+    }
+    query.exec(QString("select exists (select parameter, value from settingtable where parameter = '%1');").arg(parameter));
+    query.next();
+    if (query.value(0) != 0) {
+        query.exec(QString("select parameter, value from settingtable where parameter = '%1'").arg(parameter));
+        QSqlRecord rec = query.record();
+        while (query.next())
+        {
+            value = query.value(rec.indexOf("value")).toByteArray();
+        }
+        query.clear();
+        return value;
     }
     else {
-        query.exec(QString("select exists (select * from settingtable where parameter = '%1');").arg(parameter));
-        query.next();
-        if (query.value(0) !=0)    //Запись с данным параметром существует в таблице
-        {
-            query.exec(QString("select * from settingtable where parameter = '%1'").arg(parameter));
-            QSqlRecord rec = query.record();
-            while (query.next())
-            {
-                value = query.value(rec.indexOf("value")).toByteArray();
-            }
-            query.clear();
-            return value;
-        }
-        else {
-            query.clear();
-            return QString("Ошибка, параметр не существует в запрашиваемой таблице").toLocal8Bit();
-        }
+        query.clear();
+        return QString("Ошибка, параметр не существует в запрашиваемой таблице").toLocal8Bit();
     }
 }
 
