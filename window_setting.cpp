@@ -435,7 +435,7 @@ void Window_setting::difficult_of_passw()
             {
                 simplePas = true;
                 label_difficult_passw->clear();
-                label_difficult_passw->setText("<img src=':/img/bad_pas3.png'>");
+                label_difficult_passw->setText("<img src=':/img/bad_pas2.png'>");
                 label_difficult_passw->setFixedWidth(394);
                 break;
             }
