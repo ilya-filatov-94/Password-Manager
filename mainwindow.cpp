@@ -230,7 +230,7 @@ void MainWindow::requestReadData()
         }
         else
         {
-            counter_attempts_autoriz++;   //Счётчик кол-ва попыток
+            counter_attempts_autoriz++;
             if (counter_attempts_autoriz>=max_quantity_attempts)
             {
                 dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано")); 
