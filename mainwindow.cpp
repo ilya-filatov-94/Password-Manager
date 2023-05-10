@@ -4,19 +4,17 @@
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    counter_attempts_autoriz=0;                             //счётчик кол-ва попыток авторизации
-    var_timer_of_attempts=max_time_delay;                   //инициализация таймера повторной отправки сообщения
-    authorization_widget1 = new QWidget(this);              //Виджет окна
-    authorization_widget1->setObjectName("check_window");   //присваиваем имя объекту класса QWidget, для обращения к нему в QSS
-    window_app = new Client_window();                       //Главное окно приложения
+    counter_attempts_autoriz=0;                             
+    var_timer_of_attempts=max_time_delay;                   
+    authorization_widget1 = new QWidget(this);              
+    authorization_widget1->setObjectName("check_window");   
+    window_app = new Client_window();                      
     no_internet_connection=false;
 
-    //Виджет ввода пароля
     line_enter_pas = new QLineEdit(this);
     line_enter_pas->setEchoMode(QLineEdit::Password);
-    connect(line_enter_pas, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
+    connect(line_enter_pas, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   
 
-    //Кнопка видимости пароля
     visiblePassw = new QPushButton(this);
     visiblePassw->setIcon(QIcon(":/img/closed_lock.png"));
     visiblePassw->setIconSize(QSize(26,26));
@@ -30,30 +28,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     horizontal0->addWidget(line_enter_pas);
     horizontal0->addWidget(visiblePassw);
 
-    //Состояние Caps Lock
     label_state_capslock = new QLabel(tr("                        "), this);
     key_capslock = new QShortcut(this);
     key_capslock->setKey(Qt::Key_CapsLock);
-    connect(key_capslock, SIGNAL(activated()), this, SLOT(push_capslock()));      //По нажатию на клавишу capslock выводить надпись
+    connect(key_capslock, SIGNAL(activated()), this, SLOT(push_capslock()));
     QFont font("Times", 8, QFont:: Bold);
     label_state_capslock->setFont(font);
 
-    //Виджеты ввода кода подтвеждения
-    label_email_confrmation = new QLabel(this);                             //Виджет запроса ввода кода подтверждения
-    line_enter_code = new QLineEdit(this);                                  //поле ввода кода подтверждения
-    connect(line_enter_code, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
-    timer1 = new QTimer(this);                                          //таймер обратного отсчёта времени
-    connect(timer1, SIGNAL(timeout()), this, SLOT(slotTimeout()));      //Соединение со слотом отсчёта времени
+    label_email_confrmation = new QLabel(this);                             
+    line_enter_code = new QLineEdit(this);                                 
+    connect(line_enter_code, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   
+    timer1 = new QTimer(this);                                          
+    connect(timer1, SIGNAL(timeout()), this, SLOT(slotTimeout()));     
 
-    //Время обратного отсчёта|кнопка повторной отправки сообщения
     countdown_timer = new QLabel(tr("                        "), this);
     countdown_timer->setMargin(6);
     resending_message = new QPushButton(tr("Отправить код"), this);
     resending_message->setFixedWidth(195);
     connect(resending_message, SIGNAL(clicked()), this, SLOT(slot_restart_Timer()));
-    resending_message->setVisible(false);              //Инициализация видимости
+    resending_message->setVisible(false);             
 
-    //Кнопки ОК и Cancel
     ok = new QPushButton(tr("Ok"), this);
     connect(ok, SIGNAL(clicked()), this, SLOT(slot_requestReadData()));
     key_enter = new QShortcut(this);
@@ -64,23 +58,23 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(cancel, SIGNAL(clicked()), this, SLOT(close_window()));
 
     groupBox1 = new QGroupBox(this);
-    groupBox1->setTitle(tr(" Введите пароль:"));        //группа с рамкой
+    groupBox1->setTitle(tr(" Введите пароль:"));        
     //Компоновка виджетов ввода мастер-пароля
-    vertical0 = new QVBoxLayout();     //вертикальное размещение 1
-    vertical0->setMargin(15);                       //Толщина рамки
-    vertical0->setSpacing(5);                       //Расстояние между виджетами
+    vertical0 = new QVBoxLayout();    
+    vertical0->setMargin(15);                       
+    vertical0->setSpacing(5);            
     vertical0->addStretch(1);
     vertical0->addLayout(horizontal0);
     vertical0->addWidget(label_state_capslock);
     vertical0->setAlignment(label_state_capslock, Qt::AlignCenter);
-    groupBox1->setLayout(vertical0);        //группа с рамкой
+    groupBox1->setLayout(vertical0);    
 
     //компоновка виджетов ввода одноразового кода
     groupBox2 = new QGroupBox(this);
-    groupBox2->setTitle(tr(" Введите код подтверждения:"));        //группа с рамкой
-    vertical01 = new QVBoxLayout;          //вертикальное размещение 2
-    vertical01->setMargin(15);                          //Толщина рамки
-    vertical01->setSpacing(10);                         //Расстояние между виджетами
+    groupBox2->setTitle(tr(" Введите код подтверждения:"));   
+    vertical01 = new QVBoxLayout;          
+    vertical01->setMargin(15);                          
+    vertical01->setSpacing(10);                      
     vertical01->addStretch(1);
     vertical01->addWidget(label_email_confrmation);
     vertical01->addWidget(line_enter_code);
@@ -89,22 +83,22 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     vertical01->addStretch(5);
     vertical01->addWidget(resending_message);
     vertical01->setAlignment(resending_message, Qt::AlignCenter);
-    groupBox2->setLayout(vertical01);        //группа с рамкой
-    groupBox2->setVisible(false);            //Инициализация
+    groupBox2->setLayout(vertical01);        
+    groupBox2->setVisible(false);            
 
     //Компоновка кнопок
     horizontal1 = new QHBoxLayout();
-    horizontal1->setMargin(5);    //Толщина рамки
-    horizontal1->setSpacing(10);  //Расстояние между виджетами
+    horizontal1->setMargin(5);    
+    horizontal1->setSpacing(10);  
     horizontal1->addStretch(1);
     horizontal1->addWidget(ok);
     horizontal1->addWidget(cancel);
     horizontal1->addStretch(1);
 
     //Размещение компоновок на на виджете окна
-    vertical02 = new QVBoxLayout();        //вертикальное размещение 2
-    vertical02->setMargin(5);                           //Толщина рамки
-    vertical02->setSpacing(5);                          //Расстояние между виджетами
+    vertical02 = new QVBoxLayout();        
+    vertical02->setMargin(5);                
+    vertical02->setSpacing(5);             
     vertical02->addStretch(1);
     vertical02->addWidget(groupBox1);
     vertical02->addWidget(groupBox2);
@@ -112,9 +106,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     vertical02->addStretch(1);
 
     setting = new QSettings("My_Corp", "Spreadsheet");
-    db = QSqlDatabase::addDatabase("QSQLITE");              //активация драйвера SQLITE
+    db = QSqlDatabase::addDatabase("QSQLITE");
 
-    network_connection = new Network_connection();        //объект передаваемый в поток не должен иметь родителя
+    network_connection = new Network_connection();
     thread = new QThread(this);
     thread->start();
     network_connection->moveToThread(thread);
@@ -127,7 +121,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     //Результат проверки интернет соединения
     connect(network_connection, &Network_connection::failure_internet_connection, this, &MainWindow::result_connection, Qt::QueuedConnection);
 
-    //Запрос данных для smtp-сервера
     connect(network_connection, &Network_connection::signal_smtp_data, this, &MainWindow::getDataForSmtp, Qt::QueuedConnection);
     connect(this, &MainWindow::send_data_smtp, network_connection, &Network_connection::getDataSmtp, Qt::QueuedConnection);
 
@@ -197,7 +190,6 @@ void MainWindow::dialog_message(QMessageBox::Icon icon, QString str1, QString st
     {delete f_msg;}
 }
 
-//Чтение состояния клавиши CapsLock при запуске приложения
 void MainWindow::state_capslock()
 {
     if ((GetKeyState(VK_CAPITAL) & 0x0001)!=0)
@@ -210,7 +202,6 @@ void MainWindow::state_capslock()
     }
 }
 
-//Слот нажатия клавиши CapsLock
 void MainWindow:: push_capslock()
 {
     state_capslock();
@@ -242,13 +233,13 @@ void MainWindow::requestReadData()
             counter_attempts_autoriz++;   //Счётчик кол-ва попыток
             if (counter_attempts_autoriz>=max_quantity_attempts)
             {
-                dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано"));   //вызов диалогового окна с ошибкой
+                dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано")); 
                 setting->setValue("status", 255);
                 QByteArray status = "255";
                 if (db.open())
                 {
                     QSqlQuery query;
-                    writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);   //блокировка повторного открытия приложения
+                    writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);  
                 }
                 this->close();
                 exit(1);
@@ -261,7 +252,7 @@ void MainWindow::requestReadData()
         }
     }
     else {
-        dialog_message(QMessageBox::Critical, tr("Приложение заблокировано"), tr("Исчерпано количество попыток входа"));   //вызов диалогового окна с ошибкой
+        dialog_message(QMessageBox::Critical, tr("Приложение заблокировано"), tr("Исчерпано количество попыток входа"));   
         this->close();
         exit(1);
     }
@@ -277,19 +268,18 @@ void MainWindow::check_blocked()
         blocked_app = str.toInt();
         if (blocked_app==255 or setting->value("status").toInt()==255)
         {
-            dialog_message(QMessageBox::Critical, tr("Приложение заблокировано"), tr("Исчерпано количество попыток входа"));   //вызов диалогового окна с ошибкой
+            dialog_message(QMessageBox::Critical, tr("Приложение заблокировано"), tr("Исчерпано количество попыток входа"));   
             this->close();
             exit(1);
         }
         else {
-            read_main_settings();	//Если приложение не заблокировано, то читаем все настройки
+            read_main_settings();	
             if (!line_enter_pas->text().isEmpty())
                 check_password();
         }
     }
 }
 
-//Чтение основных настроек приложения
 void MainWindow::read_main_settings()
 {
     state_capslock();
@@ -317,7 +307,6 @@ void MainWindow::read_main_settings()
         output_pas="";
         dialog_message(QMessageBox::Warning, tr("Ошибка!"), (tr("Вставьте USB-ключ!")));
     }
-    //Инициализация видимости виджетов проверки одноразового кода и первый запуск таймера
     if (check_mail==1)
     {
         QString text_request_mail;
@@ -327,7 +316,7 @@ void MainWindow::read_main_settings()
         text_request_mail+=mail_autoriz;
         label_email_confrmation->setText(text_request_mail);
         groupBox2->setVisible(true);
-        limiting_attempts_resend();     //ограничение количества попыток по одноразовому коду
+        limiting_attempts_resend();
         this->resize(500, 330);
     }
     else
@@ -337,7 +326,6 @@ void MainWindow::read_main_settings()
     }
 }
 
-//Слот перезапуска таймера
 void MainWindow::slot_restart_Timer()
 {
     Sleep(1500);    //ожидание результата проверки интернет-соединения
@@ -354,23 +342,23 @@ void MainWindow::limiting_attempts_resend()
 {
     if (counter_attempts_autoriz>=max_quantity_attempts)
     {
-        dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации. <br> Приложение заблокировано"));   //вызов диалогового окна с ошибкой
+        dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации. <br> Приложение заблокировано"));    
         setting->setValue("status", 255);
         QByteArray status = "255";
         if (db.open())
         {
             QSqlQuery query;
-            writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);   //блокировка повторного открытия приложения
+            writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);
         }
         this->close();
         exit(1);
     }
     else
     {
-        timer1->start(1000);                                                            //старт отсчёта, мс
-        resending_message->setVisible(false);                                           //видимость кнопки
+        timer1->start(1000);                                                           
+        resending_message->setVisible(false);                                          
         countdown_timer->setText(tr("Отправить код повторно можно через: 01:30"));
-        countdown_timer->setVisible(true);                                              //видимость текущего времени отсчёта
+        countdown_timer->setVisible(true);                                              
         generating_code_message();
         emit call_network_action("verification", mail_autoriz, code_mes);
     }
@@ -402,33 +390,33 @@ void MainWindow::slotTimeout()
         if (secondes<10) {current_time+="0";}
         current_time+=QString::number(secondes);
         countdown_timer->setText(current_time);
-        countdown_timer->setVisible(true);              //видимость текущего времени отсчёта
+        countdown_timer->setVisible(true);        
     }
     else
     {
         timer1->stop();
-        var_timer_of_attempts=max_time_delay;       //Инициализация перед следующим запуском таймера
-        countdown_timer->setVisible(false);         //видимость текущего времени отсчёта
-        resending_message->setVisible(true);        //видимость кнопки
+        var_timer_of_attempts=max_time_delay;      
+        countdown_timer->setVisible(false);     
+        resending_message->setVisible(true);   
     }
 }
 
 void MainWindow::check_password()
 {
     if (!output_pas.isEmpty()){
-    bool verification_pas=false;                      //результат проверки мастер-пароля
-    bool verification_code_from_message=false;        //результат проверки кода из сообщения
-    if (output_pas == line_enter_pas->text())         //Проверка введённого пароля
+    bool verification_pas=false;              
+    bool verification_code_from_message=false;     
+    if (output_pas == line_enter_pas->text())     
     {
         verification_pas=true;
     }
 
     if (check_mail!=1)
     {
-        verification_code_from_message=true;                   //почта не привязана, проверка кода не требуется
+        verification_code_from_message=true;           
     }
 
-    if (check_mail==1 && code_mes == line_enter_code->text())  //Если почта привязана, проверяем введённый код
+    if (check_mail==1 && code_mes == line_enter_code->text()) 
     {
         verification_code_from_message=true;
     }
@@ -449,13 +437,13 @@ void MainWindow::check_password()
         counter_attempts_autoriz++;   //Счётчик кол-ва попыток
         if (counter_attempts_autoriz>=max_quantity_attempts)
         {
-            dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано"));   //вызов диалогового окна с ошибкой
+            dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано"));   
             setting->setValue("status", 255);
             QByteArray status = "255";
             if (db.open())
             {
                 QSqlQuery query;
-                writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);   //блокировка повторного открытия приложения
+                writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);
             }
             this->close();
             exit(1);
@@ -505,25 +493,24 @@ void MainWindow::slot_check_size_line()
     }
 }
 
-//Результат проверки наличия интернет соединения
 void MainWindow::result_connection(QString result)
 {
     timer1->stop();
-    var_timer_of_attempts=max_time_delay;       //Инициализация перед следующим запуском таймера
-    countdown_timer->setVisible(false);         //видимость текущего времени отсчёта
-    resending_message->setVisible(true);        //видимость кнопки
+    var_timer_of_attempts=max_time_delay;      
+    countdown_timer->setVisible(false);         
+    resending_message->setVisible(true);    
     counter_attempts_autoriz++;
     no_internet_connection=true;
 
     if (counter_attempts_autoriz>=max_quantity_attempts)
     {
-        dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано"));   //вызов диалогового окна с ошибкой
+        dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано"));
         setting->setValue("status", 255);
         QByteArray status = "255";
         if (db.open())
         {
             QSqlQuery query;
-            writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);   //блокировка повторного открытия приложения
+            writeDataSQL_settingTable(db, query, 3, "app_lock_status", status);
         }
         this->close();
         exit(1);
@@ -675,11 +662,11 @@ bool MainWindow::checkUSBDrive()
                 }
                 rootPath=QString::fromWCharArray(drive, ARRAYSIZE(drive)-1)+":/";
                 listFiles.clear();
-                searhPathFile(QDir(rootPath), listFiles);  //открытие диска и поиск файла
+                searhPathFile(QDir(rootPath), listFiles);
                 QApplication::processEvents(QEventLoop::AllEvents);
                 foreach (QString file, listFiles)
                 {
-                    if (!file.isEmpty())    {//проверяем на наличие файла dbase
+                    if (!file.isEmpty())    {
                         db.setDatabaseName(rootPath+file);
                         if(!db.open())
                         {
@@ -697,7 +684,7 @@ bool MainWindow::checkUSBDrive()
                         }
                         else {
                             db.close();
-                            db.removeDatabase(rootPath+file); } //закрытие соединения, чтение следующей БД
+                            db.removeDatabase(rootPath+file); }
                         }
                 }
             }
