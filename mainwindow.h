@@ -82,6 +82,8 @@ private:
     QLabel wait_widget;
     QMovie* movie;
 
+    void createProgressBar();
+    void showProgressBar(bool);
     void dialog_message(QMessageBox::Icon, QString, QString);
     void state_capslock();                            //чтение состояния клавиши capslock при запуске приложения
     void limiting_attempts_resend();                  //метод огр кол-ва попыток повторн. отправки сообщения
@@ -109,7 +111,6 @@ signals:
 
     void call_network_action(QString, QString, QString);
     void send_data_smtp(QString, QString);
-
 };
 
 #endif // MAINWINDOW_H

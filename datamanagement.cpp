@@ -31,7 +31,7 @@ bool DataManagement::readDataSQL(QSqlDatabase& db, QSqlQuery& query, int id, QSt
 void DataManagement::writeDataSQL(QSqlDatabase& db, QSqlQuery& query, int id, QString& name, QString& login, QString& pas)
 {
     QByteArray data1, data2, data3, key, vector;
-    generatorObj.generatePairKey(key, vector);
+    generatorObj.generatePairKey(key, vector);     //Генерируем ключ и вектор
     data1 = encryptAES(name, key, vector);
     data2 = encryptAES(login, key, vector);
     data3 = encryptAES(pas, key, vector);
@@ -46,12 +46,14 @@ void DataManagement::writeDataSQL(QSqlDatabase& db, QSqlQuery& query, int id, QS
 
 bool DataManagement::readDataSQL_dataTable(QSqlDatabase& db, QSqlQuery& query, int id, QByteArray& name, QByteArray& login, QByteArray& pas)
 {
-    if (!db.tables().contains(QLatin1String("datatable"))) {
+    if (!db.tables().contains(QLatin1String("datatable")))  //Проверка существует ли такая таблица в БД
+    {
         return false;
     }
     query.exec(QString("select exists (select name_resource, login_resource, password_resource from datatable where id = '%1');").arg(id));
     query.next();
-    if (query.value(0) !=0) {
+    if (query.value(0) !=0)    //Запись с данным id существует в таблице
+    {
         query.exec(QString("select name_resource, login_resource, password_resource from datatable where id = '%1'").arg(id));
         QSqlRecord rec = query.record();
         while (query.next())
@@ -69,12 +71,15 @@ bool DataManagement::readDataSQL_dataTable(QSqlDatabase& db, QSqlQuery& query, i
 
 bool DataManagement::writeDataSQL_dataTable(QSqlDatabase& db, QSqlQuery& query, int id, QByteArray name, QByteArray login, QByteArray pas)
 {
-    if (!db.tables().contains(QLatin1String("datatable"))) {
+    if (!db.tables().contains(QLatin1String("datatable")))  //Проверка существует ли такая таблица в БД
+    {
         query.exec("create table datatable (id int primary key, name_resource nvarchar(300), login_resource nvarchar(300), password_resource nvarchar(300))");
     }
+    //Проверка существования записи с нужным id
     query.exec(QString("select exists (select name_resource, login_resource, password_resource from datatable where id = '%1');").arg(id));
     query.next();
-    if (query.value(0) !=0) {
+    if (query.value(0) !=0)    //Запись с данным id существовала уже в БД
+    {
         query.prepare(QString("update datatable set name_resource=?, login_resource=?, password_resource=? where id ='%1'").arg(id));
         query.addBindValue(name);
         query.addBindValue(login);
@@ -86,7 +91,8 @@ bool DataManagement::writeDataSQL_dataTable(QSqlDatabase& db, QSqlQuery& query, 
         query.clear();
         return true;
     }
-    else {
+    else
+    {
         query.prepare("insert into datatable (id, name_resource, login_resource, password_resource) values (?, ?, ?, ?)");
         query.addBindValue(id);
         query.addBindValue(name);
@@ -144,7 +150,8 @@ bool DataManagement::deleteDataSQL_keysTable(QSqlDatabase& db, QSqlQuery& query,
 
 bool DataManagement::writeDataSQL_keysTable(QSqlDatabase& db, QSqlQuery& query, int id, QByteArray value1, QByteArray value2)
 {
-    if (!db.tables().contains(QLatin1String("keystable"))) {
+    if (!db.tables().contains(QLatin1String("keystable")))  //Проверка существует ли такая таблица в БД
+    {
         query.exec("create table keystable (id int primary key, value1 nvarchar(300), value2 nvarchar(300))");
     }
     query.exec(QString("select exists (select value1, value2 from keystable where id = '%1');").arg(id));
@@ -176,12 +183,14 @@ bool DataManagement::writeDataSQL_keysTable(QSqlDatabase& db, QSqlQuery& query, 
 
 bool DataManagement::readDataSQL_keysTable(QSqlDatabase& db, QSqlQuery& query, int id, QByteArray& value1, QByteArray& value2)
 {
-    if (!db.tables().contains(QLatin1String("keystable"))) {
+    if (!db.tables().contains(QLatin1String("keystable")))  //Проверка существует ли такая таблица в БД
+    {
         return false;
     }
     query.exec(QString("select exists (select value1, value2 from keystable where id = '%1');").arg(id));
     query.next();
     if (query.value(0) !=0) {
+        //Читаем записи с нужным параметром
         query.exec(QString("select value1, value2 from keystable where id = '%1'").arg(id));
         QSqlRecord rec = query.record();
         while (query.next())
@@ -198,7 +207,8 @@ bool DataManagement::readDataSQL_keysTable(QSqlDatabase& db, QSqlQuery& query, i
 
 void DataManagement::writeDataSQL_settingTable(QSqlDatabase& db, QSqlQuery& query, int id, QString parameter, QByteArray& value)
 {
-    if (!db.tables().contains(QLatin1String("settingtable"))) {
+    if (!db.tables().contains(QLatin1String("settingtable")))  //Проверка существует ли такая таблица в БД
+    {
         query.exec("create table settingtable (id int primary key, parameter nvarchar(300), value nvarchar(300))");
     }
     query.exec(QString("select exists (select parameter, value from settingtable where id = '%1');").arg(id));

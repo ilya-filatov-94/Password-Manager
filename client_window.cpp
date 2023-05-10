@@ -1,6 +1,7 @@
 #include "client_window.h"
 
 
+
 Client_window::Client_window(QWidget *parent): QMainWindow(parent)
 {
     tabs_counter=0;
@@ -8,9 +9,8 @@ Client_window::Client_window(QWidget *parent): QMainWindow(parent)
     setCentralWidget(MyGlobalWindow);                      //QMainWindow становится владельцем указателя виджета и удаляет его в соответствующее время
     MyGlobalWindow->setAttribute(Qt::WA_DeleteOnClose);    //очистка при закрытии окна
 
-    //-------Для перетаскиваний изображений для фона и сохранений фона вкладок------------
     setAcceptDrops(true);                               //разрешение сбрасываний на виджет файлов
-    counter_change_bg=0;                                //кол-во вкладок с изменённым фоном
+    counterBackgroundsSaves=0;                          //кол-во вкладок с изменённым фоном
     file_for_paths_bg.setFileName("data_img.bin");      //файл куда сохраняются пути к изображениям
 
     //Угловой виджет поиска по вкладкам
@@ -41,7 +41,6 @@ Client_window::Client_window(QWidget *parent): QMainWindow(parent)
     //Прогресс бар
     wait_widget.setAlignment(Qt::AlignCenter);
     wait_widget.setWindowFlags(Qt::WindowStaysOnTopHint);          //поверх окон
-    wait_widget.setWindowModality(Qt::ApplicationModal);           //модальность
     wait_widget.setWindowFlags(Qt::FramelessWindowHint);           //отключаем обрамление окна виджета
     wait_widget.setAttribute(Qt::WA_TranslucentBackground, true);  //Прозрачность
     wait_widget.resize(150, 150);
@@ -77,7 +76,7 @@ Client_window::Client_window(QWidget *parent): QMainWindow(parent)
 
     //Окно настроек приложения
     setting_window = new Window_setting();
-    setting_window->setWindowModality(Qt::ApplicationModal);    //Модальное окно
+    setting_window->setWindowModality(Qt::ApplicationModal);
 
     //Действия меню и статус-бар
     createActions();
@@ -115,6 +114,23 @@ void Client_window::dialog_message()
     {delete msg;}
 }
 
+void Client_window::show_progressBar(bool visible)
+{
+    if (visible) {
+        double height = MyGlobalWindow->height();
+        double width = MyGlobalWindow->width();
+        int x = static_cast<int>(width / 2.0);
+        int y = static_cast<int>(height / 2.0);
+        wait_widget.setGeometry(x-90, y-70, 150, 150);
+        wait_widget.show();
+        movie->start();
+    }
+    if (!visible) {
+        movie->stop();
+        wait_widget.close();
+    }
+}
+
 #ifndef QT_NO_CONTEXTMENU
 void Client_window::contextMenuEvent(QContextMenuEvent *event)
 {
@@ -130,12 +146,10 @@ void Client_window::save()
 
 void Client_window::redo()
 {
-    wait_widget.show();
-    movie->start();
+    show_progressBar(true);
     setting_window->show();
     setting_window->read_settings();
-    movie->stop();
-    wait_widget.close();
+    show_progressBar(false);
 }
 
 void Client_window::addTab()
@@ -164,8 +178,7 @@ void Client_window::addTab()
         connect(button_delTab[tabs_counter], SIGNAL(clicked()), this, SLOT(closeTab()));
         button_delTab[tabs_counter-1]->setVisible(false);
 
-        //Заполнение фона новой вкладки
-        QPalette pal;   //Создаём объект палитры
+        QPalette pal;
         set_default_bg_image(pal, tabs_counter);
     }
     else
@@ -179,7 +192,6 @@ void Client_window::addTab()
     }
 }
 
-//Закрытие вкладок по нажатию на кнопку закрытия на самой вкладке
 void Client_window::closeTab()
 {
     if (tabs_counter<1)
@@ -198,7 +210,7 @@ void Client_window::closeTab()
             MyGlobalWindow->removeTab(tabs_counter);
             delete tab_widget[tabs_counter];
             tab_widget[tabs_counter]=nullptr;
-            MyGlobalWindow->setCurrentWidget(tab_widget[tabs_counter-1]);     //устанавливаем текущую вкладку
+            MyGlobalWindow->setCurrentWidget(tab_widget[tabs_counter-1]);
             tabs_counter--;
             settings->setValue("number_tabs", tabs_counter);
             if (tabs_counter==0)
@@ -247,7 +259,6 @@ void Client_window::about()
                    " <br>                                                 "
                    "Контакты для связи с разработчиком приложения: <br>"
                    "e-mail:   ilya-filatov-1994@mail.ru             "));
-    //QGridLayout* layout = static_cast<QGridLayout*>(msg.layout());
     QGridLayout* layout = new QGridLayout;
     layout = static_cast<QGridLayout*>(msg.layout());
     layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
@@ -263,7 +274,7 @@ void Client_window::createActions()
     saveAct = new QAction(tr("&Сохранить все вкладки"), this);
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(tr("Сохранить все данные вкладок"));
-    connect(saveAct, &QAction::triggered, this, &Client_window::save);        //write_all()
+    connect(saveAct, &QAction::triggered, this, &Client_window::save);
 
     exitAct = new QAction(tr("&Закрыть приложение"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
@@ -293,7 +304,7 @@ void Client_window::createActions()
 
 void Client_window::createMenus()
 {
-    fileMenu = menuBar()->addMenu(tr("&Файл")); //функция menuBar() создаёт и возвращает пустую строку меню
+    fileMenu = menuBar()->addMenu(tr("&Файл"));
     fileMenu->addAction(saveAct);
     fileMenu->addAction(exitAct);
 
@@ -321,20 +332,20 @@ void Client_window::readSettings()
 
 void Client_window::readData()
 {
-    QPalette pal;       //Создаём объект палитры
-    tabs_counter=settings->value("number_tabs").toInt();     //Чтение из реестра количества сохранённых вкладок
+    QPalette pal;
+    tabs_counter=settings->value("number_tabs").toInt();
 
-    tab_widget[0]->read_data_tab(db, 0);    //Чтение данных
-    set_default_bg_image(pal, 0);           //стандартный фон вкладки
+    tab_widget[0]->read_data_tab(db, 0);
+    set_default_bg_image(pal, 0);
     for (int i=1; i<=tabs_counter; i++)
     {
         tab_widget[i] = new Tab_template(this);
         MyGlobalWindow->addTab(tab_widget[i], QString("Вкладка %1").arg(QString::number(i+1)));
         connect(tab_widget[i], &Tab_template::signal_save_tab, this, &Client_window::writeData);
-        tab_widget[i]->read_data_tab(db, i);    //Чтение данных
-        set_default_bg_image(pal, i);           //стандартный фон вкладки
+        tab_widget[i]->read_data_tab(db, i);
+        set_default_bg_image(pal, i);
 
-        MyGlobalWindow->tabBar()->moveTab(i,i+1);   //перемещение кнопки добавления вкладок
+        MyGlobalWindow->tabBar()->moveTab(i,i+1);
 
         //Кнопка закрытия вкладок
         button_delTab[i] = new QToolButton(this);
@@ -349,15 +360,12 @@ void Client_window::readData()
         QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     }
     MyGlobalWindow->setCurrentWidget(tab_widget[tabs_counter]);
-    //блокировка вкладки с кнопкой добавления
-    MyGlobalWindow->setTabEnabled(tabs_counter+1, false);
-    set_bg_image(pal, Qt::IgnoreAspectRatio);
+    MyGlobalWindow->setTabEnabled(tabs_counter+1, false);   //блокировка вкладки с кнопкой добавления
 }
 
 void Client_window::writeData_null()
 {
-    wait_widget.show();
-    movie->start();
+    show_progressBar(true);
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     int current_tab = MyGlobalWindow->currentIndex();
     if (current_tab>settings->value("number_tabs").toInt()) {
@@ -370,15 +378,13 @@ void Client_window::writeData_null()
     else {
         dialog_message();
     }
-    movie->stop();
-    wait_widget.close();
+    show_progressBar(false);
     QApplication::processEvents(QEventLoop::AllEvents);
 }
 
 void Client_window::writeData()
 {
-    wait_widget.show();
-    movie->start();
+    show_progressBar(true);
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     int current_tab = MyGlobalWindow->currentIndex();
     if (current_tab>settings->value("number_tabs").toInt()) {
@@ -391,17 +397,16 @@ void Client_window::writeData()
     else {
         dialog_message();
     }
-    movie->stop();
-    wait_widget.close();
+    show_progressBar(false);
     QApplication::processEvents(QEventLoop::AllEvents);
 }
 
 void Client_window::writeAllData()
 {
-    wait_widget.show();
-    movie->start();
+    show_progressBar(true);
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     settings->setValue("number_tabs", tabs_counter);     //Сохранение в реестре количества открытых вкладок
+    QApplication::processEvents(QEventLoop::AllEvents);
     if(db.open())
     {
         for (int i=0; i<=tabs_counter; i++)
@@ -412,15 +417,12 @@ void Client_window::writeAllData()
     else {
         dialog_message();
     }
-    QApplication::processEvents(QEventLoop::AllEvents);
-    movie->stop();
-    wait_widget.close();
+    show_progressBar(false);
 }
 
 void Client_window::writeChangedData()      //запись данных только тех вкладок, на которых произошли изменения
 {
-    wait_widget.show();
-    movie->start();
+    show_progressBar(true);
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
     int current_tab = MyGlobalWindow->currentIndex();
     if (current_tab>settings->value("number_tabs").toInt()) {
@@ -435,8 +437,7 @@ void Client_window::writeChangedData()      //запись данных толь
         dialog_message();
     }
     QApplication::processEvents(QEventLoop::AllEvents);
-    movie->stop();
-    wait_widget.close();
+    show_progressBar(false);
 }
 
 //Проверка на сохранение перед выходом из приложения
@@ -520,36 +521,24 @@ bool Client_window::eventFilter(QObject *obj, QEvent *event)   //Фильтр с
 
 void Client_window::set_bg_image(QPalette& pal, Qt::AspectRatioMode mode)
 {
-    counter_change_bg=settings->value("numberChangeBack").toInt();
-    if (counter_change_bg>0)
-    {
-        if (file_for_paths_bg.exists())
-        {
-            int index[max_tabs];
+    counterBackgroundsSaves = settings->value("numberChangeBack").toInt();
+    if (counterBackgroundsSaves>0) {
+        if (file_for_paths_bg.exists()) {
+            QVector<QString> vector_index;
             QVector<QString> vector_string;
+            readAllPathImages(vector_index, vector_string);
             QString path;
-            //Чтение сохранённых настроек
-            file_for_paths_bg.open(QIODevice::ReadOnly);
-            QDataStream* stream = new QDataStream(&file_for_paths_bg);
-            stream->setVersion(QDataStream::Qt_4_9);
-            for (int i=0; i<counter_change_bg; i++)
-            {
-                //чтение путей изображений для вкладок
-                *stream >> index[i];
-                *stream >> path;
-                vector_string+=path;
-                vector_string[i].replace("\r\n", "");
-                //установка фона из сохранённых путей
-                path=vector_string.at(i);
-                if (index[i]<=tabs_counter)
-                {
+            int index;
+            for (int i = 0; i < counterBackgroundsSaves; i++) {
+                index = vector_index[i].toInt();
+                path = vector_string[i];
+                if (index <= tabs_counter) {
                     QPixmap pixmap = QPixmap(path).scaled(this->size(), mode);
-                    pal.setBrush(tab_widget[index[i]]->backgroundRole(),QBrush(pixmap));
-                    tab_widget[index[i]]->setPalette(pal);
-                    tab_widget[index[i]]->setAutoFillBackground(true);
+                    pal.setBrush(tab_widget[index]->backgroundRole(),QBrush(pixmap));
+                    tab_widget[index]->setPalette(pal);
+                    tab_widget[index]->setAutoFillBackground(true);
                 }
             }
-            file_for_paths_bg.close();
         }
     }
 }
@@ -566,7 +555,9 @@ void Client_window::resizeEvent(QResizeEvent* event)
     QMainWindow::resizeEvent(event);
     pixmap_default = QPixmap(":/img/image_forest_75proc.jpg").scaled(this->size(), Qt::IgnoreAspectRatio);
     QPalette pal;
-    set_default_bg_image(pal, MyGlobalWindow->currentIndex());
+    for (int i=0; i<=tabs_counter; i++) {
+        set_default_bg_image(pal, i);
+    }
     set_bg_image(pal, Qt::KeepAspectRatioByExpanding);
 }
 
@@ -592,9 +583,8 @@ void Client_window::dropEvent(QDropEvent* event)
    QString filePath=event->mimeData()->urls()[0].toLocalFile();
    //Проверяем расширение файла
    QFileInfo info_file(filePath);
-   //png
-   if ((info_file.suffix())!="jpg")
-   {
+
+   if ((info_file.suffix())!="jpg") {
        QMessageBox* warning_msg = new QMessageBox(QMessageBox::Warning,
                                        tr("Предупреждение"),
                                        tr("Используйте для изменения фона изоражения с расширением .JPG"));
@@ -602,14 +592,16 @@ void Client_window::dropEvent(QDropEvent* event)
        if (warning_msg->exec()==QMessageBox::Ok)
        {delete warning_msg;}
    }
-   else //Если файл формата .png то устанавливаем фон
+   else
    {
-        QPixmap image(filePath);
+        //Если файл формата .jpg то устанавливаем фон
+        QPixmap image = QPixmap(filePath).scaled(this->size(), Qt::KeepAspectRatioByExpanding);
         QPalette palette;
-        palette.setBrush(tab_widget[MyGlobalWindow->currentIndex()]->backgroundRole(),QBrush(QPixmap(filePath)));
+        palette.setBrush(tab_widget[MyGlobalWindow->currentIndex()]->backgroundRole(),QBrush(image));
         tab_widget[MyGlobalWindow->currentIndex()]->setPalette(palette);              //Устанавливаем в виджете объект палитры
         tab_widget[MyGlobalWindow->currentIndex()]->setAutoFillBackground(true);      //Переводим свойство заполнения фона в true
-        //Копирование файла и сохранение пути к нему
+
+        //Копирование файла изображения
         QFileInfo info(filePath);                   //полная инфа о файле
         QString fileName=info.fileName();           //имя копируемого файла
         QString copyPath=QDir::currentPath();       //Текущая директория приложения куда будет копироваться файл
@@ -617,87 +609,74 @@ void Client_window::dropEvent(QDropEvent* event)
         if (!QFile::exists(copyPath))               //если такого файла нет в директории куда копируем,
             QFile::copy(filePath, copyPath);        //выполняем копирование
 
-   bool counter_repeating=false;            //Флаг повтора индекса
-   QString repeatPath;                      //Путь к файлу с повторяющимся индексом
-   //Запись индекса и пути
-   if (file_for_paths_bg.exists())            //"Файл уже существует, читаем все индексы и пути \r\n";
-   {
-       int index_array[max_tabs];
-       QVector<QString> vector_string;
-       int index_vector=0;
-       QString tempPath;
-       //Открытие файла на чтение
-       file_for_paths_bg.open(QIODevice::ReadOnly);
-       QDataStream* stream1 = new QDataStream(&file_for_paths_bg);
-       stream1->setVersion(QDataStream::Qt_4_9);
-       counter_change_bg=settings->value("numberChangeBack").toInt();
-       for (int i=0; i<counter_change_bg; i++)
-       {
-           *stream1 >> index_array[i];
-           *stream1 >> tempPath;
-           vector_string+=tempPath;
-           vector_string[i].replace("\r\n", "");
-           if (index_array[i]==(MyGlobalWindow->currentIndex()))
-           {
-               counter_repeating=true;
-               index_vector=i;
-               repeatPath=tempPath;
-               //"Повторяющийся элемент! " << CurIndex << "\r\n";
-           }
-       }
-       file_for_paths_bg.close();
-       delete stream1;
-       stream1=nullptr;
-       //Если текущий индекс совпадает с уже записанным ранее, переписываем путь для этого индекса, пути других индексов пишем как обычно
-       if (counter_repeating)
-       {
-           //qDebug() << "Переписываем путь в векторе \r\n";
-           vector_string[index_vector].replace(repeatPath, copyPath);
-           repeatPath.replace("\r\n", "");                    //чтобы получить валидный путь, удаляем лишние символы
-           QDir dir;
-           file_for_paths_bg.remove();
-           file_for_paths_bg.open(QIODevice::WriteOnly | QIODevice::Append);
-           QDataStream* stream2 = new QDataStream(&file_for_paths_bg);
-           stream2->setVersion(QDataStream::Qt_4_9);
-           //qDebug() << "переписываем актуальные пути в файле \r\n";
-           for (int i=0; i<counter_change_bg; i++)
-           {
-               if (index_array[i]==(MyGlobalWindow->currentIndex()))
-               {
-                   *stream2 << MyGlobalWindow->currentIndex();
-                   *stream2 << ("\r\n"+copyPath+"\r\n");
-               }
-               else
-               {
-                   *stream2 << index_array[i];
-                   *stream2 << ("\r\n"+vector_string.at(i)+"\r\n");
-               }
-           }
-           file_for_paths_bg.close();
-           delete stream2;
-           stream2=nullptr;
-           settings->setValue("numberChangeBack", counter_change_bg);
-           //qDebug() << "Пути переписаны";
-       }
+        //Сохранение пути к файлу изображения
+        int currentIndexTab = MyGlobalWindow->currentIndex();
+        QString currentIndex = QString::number(currentIndexTab);
+        QVector<QString> vector_index;
+        QVector<QString> vector_string;
+        counterBackgroundsSaves = settings->value("numberChangeBack").toInt();
+
+        //Файл уже существует, читаем все индексы и пути
+        if (file_for_paths_bg.exists()) {
+            readAllPathImages(vector_index, vector_string);
+            if (vector_index.contains(currentIndex)) {
+                int indexVector = vector_index.indexOf(currentIndex);
+                vector_string[indexVector].replace(vector_string[indexVector], filePath);
+                writeAllPathImages(vector_index, vector_string);
+            }
+            else  {
+                writeOnePathImage(currentIndex, filePath);
+                vector_index << currentIndex;
+                vector_string << filePath;
+                counterBackgroundsSaves = vector_index.size();
+                settings->setValue("numberChangeBack", counterBackgroundsSaves);
+            }
+        }
+        if (!file_for_paths_bg.exists()) {
+            writeOnePathImage(currentIndex, filePath);
+            counterBackgroundsSaves = 1;
+            settings->setValue("numberChangeBack", counterBackgroundsSaves);
+        }
    }
-   //Если файла не существовало, Либо индекс не повторяется - обычная запись
-  if (!file_for_paths_bg.exists() or !counter_repeating)
-  {
-       file_for_paths_bg.open(QIODevice::WriteOnly | QIODevice::Append);
-       QDataStream* stream3 = new QDataStream(&file_for_paths_bg);
-       stream3->setVersion(QDataStream::Qt_4_9);
-       *stream3 << MyGlobalWindow->currentIndex();
-       *stream3 << ("\r\n"+copyPath+"\r\n");   //Запись пути в файл
-       file_for_paths_bg.close();
-       delete stream3;
-       counter_change_bg++;
-       settings->setValue("numberChangeBack", counter_change_bg);
-   }
-   }
-   //1) читаем все индексы и пути
-   //2) ищем индекс, совпадающий с currentIndex (на текущей вкладке уже меняли фон)
-   //3) по индексу, совпадающему с currentIndex переписываем значение пути (новая картинка будет использоваться)
-   //4) сбрасываем записи файла и записываем ранее прочтённые индексы и актуальные пути к ним. counter_change_palette НЕинкрементируем, пишем в реестр
-   //5) если нет индекса, совпадающего с currentIndex, то НЕ выполняем пункт 3 и 4. Просто пишем currentIndex и путь в файл. Инкрементируем counter_change_palette и пишем в реестр
 }
 
+void Client_window::readAllPathImages(QVector<QString>& vector_index, QVector<QString>& vector_string)
+{
+    file_for_paths_bg.open(QIODevice::ReadOnly);
+    QDataStream* stream = new QDataStream(&file_for_paths_bg);
+    stream->setVersion(QDataStream::Qt_4_9);
+    QString index, str;
+    for (int i = 0; i < counterBackgroundsSaves; i++) {
+        *stream >> index;
+        *stream >> str;
+        vector_index << index;
+        vector_string << str.replace("\r\n", "");
+    }
+    file_for_paths_bg.close();
+    delete stream;
+}
+
+void Client_window::writeAllPathImages(QVector<QString>& vector_index, QVector<QString>& vector_string)
+{
+    file_for_paths_bg.remove();
+    file_for_paths_bg.open(QIODevice::WriteOnly);
+    QDataStream* stream = new QDataStream(&file_for_paths_bg);
+    stream->setVersion(QDataStream::Qt_4_9);
+    for (int i = 0; i < counterBackgroundsSaves; i++) {
+        *stream << vector_index.at(i);
+        *stream << ("\r\n"+vector_string.at(i)+"\r\n");
+    }
+    file_for_paths_bg.close();
+    delete stream;
+}
+
+void Client_window::writeOnePathImage(QString& index, QString& pathFile)
+{
+    file_for_paths_bg.open(QIODevice::Append);
+    QDataStream* stream = new QDataStream(&file_for_paths_bg);
+    stream->setVersion(QDataStream::Qt_4_9);
+    *stream << index;
+    *stream << ("\r\n"+pathFile+"\r\n");
+    file_for_paths_bg.close();
+    delete stream;
+}

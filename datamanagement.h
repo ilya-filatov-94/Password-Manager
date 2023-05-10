@@ -19,18 +19,23 @@ public:
 
 protected:
 
-    bool readDataSQL(QSqlDatabase&, QSqlQuery&, int, QString&, QString&, QString&);
-    void writeDataSQL(QSqlDatabase&, QSqlQuery&, int, QString&, QString&, QString&);
-    bool deleteDataSQL(QSqlDatabase&, QSqlQuery&, int);
-    QByteArray readDataSQL_settingTable(QSqlDatabase&, QSqlQuery&, QString);
-    void writeDataSQL_settingTable(QSqlDatabase&, QSqlQuery&, int, QString, QByteArray&);
+    bool readDataSQL(QSqlDatabase&, QSqlQuery&, int, QString&, QString&, QString&);      //чтение данных приложения при открытии
+    void writeDataSQL(QSqlDatabase&, QSqlQuery&, int, QString&, QString&, QString&);     //запись данных приложения по нажатию кнопки
+    bool deleteDataSQL(QSqlDatabase&, QSqlQuery&, int);  //Удаление записей из БД
+
+    QByteArray readDataSQL_settingTable(QSqlDatabase&, QSqlQuery&, QString);                 //чтение данных из таблицы настроек
+    void writeDataSQL_settingTable(QSqlDatabase&, QSqlQuery&, int, QString, QByteArray&);     //запись данных в таблицу настроек
+
     bool readDataSQL_dataTable(QSqlDatabase&, QSqlQuery&, int, QByteArray&, QByteArray&, QByteArray&);
     bool writeDataSQL_dataTable(QSqlDatabase&, QSqlQuery&, int, QByteArray, QByteArray, QByteArray);
-    bool readDataSQL_keysTable(QSqlDatabase&, QSqlQuery&, int, QByteArray&, QByteArray&);
-    bool writeDataSQL_keysTable(QSqlDatabase&, QSqlQuery&, int, QByteArray, QByteArray);
-    bool deleteDataSQL_keysTable(QSqlDatabase&, QSqlQuery&, int);
+
+    bool readDataSQL_keysTable(QSqlDatabase&, QSqlQuery&, int, QByteArray&, QByteArray&);   //чтение из таблицы векторов
+    bool writeDataSQL_keysTable(QSqlDatabase&, QSqlQuery&, int, QByteArray, QByteArray); //запись в таблицу векторов
+    bool deleteDataSQL_keysTable(QSqlDatabase&, QSqlQuery&, int);  //Удаление записей из таблицы векторов
+
     QByteArray encryptAES(QString, QByteArray&, QByteArray&);
     QString decryptAES(QByteArray&, QByteArray&, QByteArray&);
+
     void generateKey(QByteArray&, QByteArray&);
 
 private:
@@ -40,3 +45,4 @@ private:
 };
 
 #endif // DATAMANAGEMENT_H
+

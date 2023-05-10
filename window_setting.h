@@ -66,6 +66,7 @@ private:
     bool repeating_sequence(QString);              //проверка на повторяющиеся подряд последовательности
     void check_address_mail(QString);              //проверка корректности введённого адреса email
     void dialog_message();
+    void show_progressBarSettings(bool);
 
     QWidget* Setting_window;            //виджет окна настроек
     Network_connection* network_connection1;

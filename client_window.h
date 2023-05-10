@@ -5,8 +5,8 @@
 #include "tab_template.h"
 #include "windows.h"
 
-#include <QApplication> //для блокировки/разблокировки/обновления пользовательского интефейса во время длительных операций с БД
-#include <QEventLoop>   //для блокировки/разблокировки/обновления пользовательского интефейса во время длительных операций с БД
+#include <QApplication>
+#include <QEventLoop>
 
 #include <QMainWindow>
 #include <QToolButton>
@@ -44,6 +44,9 @@
 #include <QMenuBar>
 
 
+
+const int max_tabs=31;   //Максимальное количество вкладок+1 (30 шт)
+
 class Client_window : public QMainWindow
 {
     Q_OBJECT
@@ -52,6 +55,7 @@ public:
 
     explicit Client_window(QWidget *parent = nullptr);
     ~Client_window() override;
+
     void readSettings();
 
 protected:
@@ -61,7 +65,7 @@ protected:
     #endif // QT_NO_CONTEXTMENU
 
     void closeEvent(QCloseEvent* event) override;
-    void resizeEvent(QResizeEvent*) override;
+
     bool eventFilter(QObject *obj, QEvent *event) override;
 
     //Обработка событий нажатия, перестакивания и отпускания для установки изображения для фона
@@ -69,6 +73,8 @@ protected:
     void dragLeaveEvent(QDragLeaveEvent* event) override;
     void dragMoveEvent(QDragMoveEvent* event) override;
     void dropEvent(QDropEvent* event) override;
+
+    void resizeEvent(QResizeEvent*) override;
 
 private slots:
 
@@ -86,15 +92,22 @@ private slots:
 
 private:
 
-    void readData();                                                  //чтение данных приложения при открытии
-    void writeChangedData();                                          //запись данных тех вкладок на которых происходили изменения
+    void readData();                                                 //чтение данных приложения при открытии
+    void writeChangedData();                                         //запись данных тех вкладок на которых происходили изменения
     //void deleteDataTab(int&);
-    void set_bg_image(QPalette&, Qt::AspectRatioMode);                //установка фона вкладок при открытии приложения
-    void set_default_bg_image(QPalette&, int);                       //установка стандартного фона вкладки при добавлении новой вкладки
     void dialog_message();
+    void show_progressBar(bool);
+
+    void createActions();
+    void createMenus();
+
+    void set_bg_image(QPalette&, Qt::AspectRatioMode);               //установка фона вкладок при открытии приложения
+    void set_default_bg_image(QPalette&, int);                       //установка стандартногот фона вкладки при добавлении новой
+    void readAllPathImages(QVector<QString>&, QVector<QString>&);
+    void writeAllPathImages(QVector<QString>&, QVector<QString>&);
+    void writeOnePathImage(QString&, QString&);
 
     QTabWidget* MyGlobalWindow;
-    static const int max_tabs=31;        //Максимальное количество вкладок+1 (30 шт)
     Tab_template* tab_widget[max_tabs];  //массив шаблонов вкладок (интерфейсы вкладок одинаковы)
     QPixmap pixmap_default;              //изображение вкладок
     Window_setting* setting_window;      //окно настроек приложения
@@ -105,7 +118,7 @@ private:
     QToolButton* button_delTab[max_tabs];
     QPixmap closeBtn;
     int tabs_counter;
-    
+
     //Кнопки меню
     QMenu* fileMenu;
     QMenu* editMenu;
@@ -114,11 +127,9 @@ private:
     QAction* saveAct;
     QAction* exitAct;
     QAction* redoAct;
-    QAction* adding_tabs;
-    QAction* delete_tabs;
+    QAction* adding_tabs;       //Добавление вкладок
+    QAction* delete_tabs;       //Удаление вкладок
     QAction* aboutAct;
-    void createActions();
-    void createMenus();
 
     //Угловой виджет поиска
     QLineEdit* search_line;
@@ -131,7 +142,7 @@ private:
 
     //Для перетаскивания
     QFile file_for_paths_bg;      //текстовый файл с путями для изображений вкладок
-    int counter_change_bg;        //счётчик изменений фона
+    int counterBackgroundsSaves;        //счётчик изменений фона
 
     //Виджет загрузки
     QLabel wait_widget;

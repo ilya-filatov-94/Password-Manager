@@ -131,18 +131,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(network_connection, &Network_connection::signal_smtp_data, this, &MainWindow::getDataForSmtp, Qt::QueuedConnection);
     connect(this, &MainWindow::send_data_smtp, network_connection, &Network_connection::getDataSmtp, Qt::QueuedConnection);
 
-    //Прогресс бар
-    wait_widget.setAlignment(Qt::AlignCenter);
-    wait_widget.setWindowFlags(Qt::WindowStaysOnTopHint);          //поверх окон
-    wait_widget.setWindowModality(Qt::ApplicationModal);           //модальность
-    wait_widget.setWindowFlags(Qt::FramelessWindowHint);           //отключаем обрамление окна виджета
-    wait_widget.setAttribute(Qt::WA_TranslucentBackground, true);  //Прозрачность
-    wait_widget.resize(150, 150);
-    movie = new QMovie(&wait_widget);
-    movie->setFileName(":/img/loading.gif");
-    movie->setScaledSize(wait_widget.size());
-    wait_widget.setMovie(movie);
-    //--------------------------------------------------------
+    createProgressBar();
 
     setWindowTitle(tr("Password Manager"));
     authorization_widget1->setLayout(vertical02);
@@ -172,6 +161,32 @@ MainWindow::~MainWindow()
     delete horizontal1;
     delete vertical02;
     delete authorization_widget1;
+}
+
+void MainWindow::createProgressBar()
+{
+    wait_widget.setAlignment(Qt::AlignCenter);
+    wait_widget.setWindowFlags(Qt::WindowStaysOnTopHint);          //поверх окон
+    wait_widget.setWindowModality(Qt::ApplicationModal);           //модальность
+    wait_widget.setWindowFlags(Qt::FramelessWindowHint);           //отключаем обрамление окна виджета
+    wait_widget.setAttribute(Qt::WA_TranslucentBackground, true);  //Прозрачность
+    wait_widget.resize(150, 150);
+    movie = new QMovie(&wait_widget);
+    movie->setFileName(":/img/loading.gif");
+    movie->setScaledSize(wait_widget.size());
+    wait_widget.setMovie(movie);
+}
+
+void MainWindow::showProgressBar(bool visible)
+{
+    if (visible) {
+        wait_widget.show();
+        movie->start();
+    }
+    if (!visible) {
+        movie->stop();
+        wait_widget.setVisible(false);
+    }
 }
 
 //Метод для вывода 3-ёх разных типов диалоговых сообщений
@@ -208,8 +223,7 @@ void MainWindow::slot_requestReadData()
 
 void MainWindow::requestReadData()
 {
-    wait_widget.show();
-    movie->start();
+    showProgressBar(true);
     if (setting->value("status").toInt()!=255)
     {
         if (checkUSBDrive())
@@ -241,8 +255,7 @@ void MainWindow::requestReadData()
             }
             else
             {
-                movie->stop();
-                wait_widget.setVisible(false);
+                showProgressBar(false);
                 dialog_message(QMessageBox::Critical, tr("Ошибка!"), (tr("Вставьте USB-ключ! <br> Осталось ")+QString::number(max_quantity_attempts-counter_attempts_autoriz)+tr(" попыток авторизации")));
             }
         }
@@ -296,9 +309,7 @@ void MainWindow::read_main_settings()
         iv = readDataSQL_settingTable(db, query, "vector_mail");
         text = readDataSQL_settingTable(db, query, "address_email");
         mail_autoriz = decryptAES(text, key, iv);
-
-        movie->stop();
-        wait_widget.setVisible(false);
+        showProgressBar(false);
     }
     else
     {
@@ -336,7 +347,6 @@ void MainWindow::slot_restart_Timer()
         dialog_message(QMessageBox::Warning, tr("Предупреждение"), (tr("Осталось ")+QString::number(max_quantity_attempts-counter_attempts_autoriz)+tr(" попыток авторизации")));
     }
     no_internet_connection=false;
-    //отправка сообщения и перезапуск таймера
     limiting_attempts_resend();
 }
 
@@ -378,7 +388,7 @@ void MainWindow::generating_code_message()
     }
 }
 
-void MainWindow:: slotTimeout()
+void MainWindow::slotTimeout()
 {
     if (var_timer_of_attempts>0)
     {
@@ -412,33 +422,31 @@ void MainWindow::check_password()
     {
         verification_pas=true;
     }
-    //Проверка кода из сообщения по электронной почте
+
     if (check_mail!=1)
     {
         verification_code_from_message=true;                   //почта не привязана, проверка кода не требуется
     }
+
     if (check_mail==1 && code_mes == line_enter_code->text())  //Если почта привязана, проверяем введённый код
     {
         verification_code_from_message=true;
     }
-    //Результат аутентификации
+
     if (verification_pas==true && verification_code_from_message==true)
     {
         wait_widget.setVisible(true);
         movie->start();
-
-        if (movie->state()==QMovie::Running)
+        if (movie->state()==QMovie::Running) {
             window_app->readSettings();
-
-        movie->stop();
-        wait_widget.close();
+        }
+        showProgressBar(false);
         window_app->show();
         this->close();
     }
     else
     {
         counter_attempts_autoriz++;   //Счётчик кол-ва попыток
-        //Если кол-во попыток исчерпано
         if (counter_attempts_autoriz>=max_quantity_attempts)
         {
             dialog_message(QMessageBox::Critical, tr("Ошибка"), tr("Исчерпано кол-во попыток авторизации <br> приложение заблокировано"));   //вызов диалогового окна с ошибкой
@@ -563,7 +571,7 @@ bool MainWindow::GetSerialNumberUSB(LPCWSTR sDriveName, std::string &strSerialNu
     if (hVolume == INVALID_HANDLE_VALUE) {
         return FALSE;
     }
-    // set the STORAGE_PROPERTY_QUERY input
+
     STORAGE_PROPERTY_QUERY PropertyQuery;
     ZeroMemory(&PropertyQuery, sizeof(STORAGE_PROPERTY_QUERY));
     PropertyQuery.PropertyId = StorageDeviceProperty;
@@ -629,7 +637,7 @@ void MainWindow::searhPathFile(QDir dir, QStringList& files)
         {
             continue;
         }
-        searhPathFile(QDir(dir.absoluteFilePath(subdir)), files);      //Рекурсивный вызов метода
+        searhPathFile(QDir(dir.absoluteFilePath(subdir)), files);
     }
 }
 

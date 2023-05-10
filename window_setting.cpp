@@ -104,15 +104,16 @@ Window_setting::Window_setting(QWidget *parent) : QMainWindow(parent)
     connect(enter_address_mail, SIGNAL(textChanged(const QString&)), this, SLOT(slot_check_size_line()));   //проверка на длину вводимого текста
 
     //Окно паузы чтобы программа успела проверить корректность email
-    wait_widget = new QLabel();
+    wait_widget = new QLabel(this);
     wait_widget->setText(tr("Пожалуйста, подождите, пока программа завершит <br>проверку введённого вами адреса email <br><br><br>По указанному адресу вам было отправлено информирующее <br>письмо, пожалуйста не отвечайте на него"));
     wait_widget->setAlignment(Qt::AlignCenter);
     wait_widget->setStyleSheet("background-color: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #ffffff, stop: 0.5 #e0e5e8, stop: 0.51 #d2dadc, stop: 1 #c0cecf);"
                                "border: 1px solid darkgray;");
+//    wait_widget->setWindowModality(Qt::ApplicationModal);           //модальность
     wait_widget->setWindowFlags(Qt::WindowStaysOnTopHint);  //поверх окон
-    wait_widget->setWindowModality(Qt::ApplicationModal);   //модальность
     wait_widget->setWindowFlags(Qt::FramelessWindowHint);   //отключаем обрамление окна виджета
     wait_widget->resize(400, 170);
+    show_progressBarSettings(false);
 
     //Компоновка виджетов ввода нового пароля
     groupBox_new_pas = new QGroupBox(this);
@@ -578,7 +579,7 @@ void Window_setting::slot_request_pas()
 
 void Window_setting::result_connection(QString str)
 {
-    wait_widget->close();
+    show_progressBarSettings(false);
     QMessageBox* error_msg1 = new QMessageBox(QMessageBox::Critical,"Ошибка!",str);
     if (error_msg1->exec()==QMessageBox::Ok)
     {delete error_msg1;}
@@ -593,7 +594,7 @@ void Window_setting::result_confirmation_email(QString str)
 {
     if (str==tr("Письмо успешно отправлено!"))
     {
-        wait_widget->close();
+        show_progressBarSettings(false);
         save_mail();
         save_password();
     }
@@ -604,7 +605,7 @@ void Window_setting::result_confirmation_email(QString str)
                                   tr("Некорректный адрес email! <br>Сохранение данных приложения не выполнено!"));
         if (critical_msg->exec()==QMessageBox::Ok)
         {delete critical_msg;}
-        wait_widget->close();
+        show_progressBarSettings(false);
     }
 }
 
@@ -623,7 +624,7 @@ void Window_setting::slot_check_size_line()
     }
 }
 
-void Window_setting:: visible_checkbox()
+void Window_setting::visible_checkbox()
 {
     if (check_box_for_email->isChecked())   //and already_checked==true
     {
@@ -642,7 +643,7 @@ void Window_setting:: visible_checkbox()
     }
 }
 
-void Window_setting:: read_setting_mail(int& setting_mail, QString& address_mail)
+void Window_setting::read_setting_mail(int& setting_mail, QString& address_mail)
 {
     if (setting_mail==1)
     {
@@ -736,7 +737,7 @@ void Window_setting::check_address_mail(QString address)
         {
             enter_address_mail->setText(local_part+"@"+domain_part);
             address=local_part+"@"+domain_part;
-            wait_widget->show();
+            show_progressBarSettings(true);
             emit call_network_action("test_message", address, "");
         }
     }
@@ -769,6 +770,21 @@ void Window_setting::dialog_message()
     QMessageBox* msg = new QMessageBox(QMessageBox::Critical, tr("Ошибка!"), (tr("Вставьте USB-ключ!")));
     if (msg->exec()==QMessageBox::Ok)
     {delete msg;}
+}
+
+void Window_setting::show_progressBarSettings(bool visible)
+{
+    if (visible) {
+        double height = Setting_window->height();
+        double width = Setting_window->width();
+        int x = static_cast<int>(width / 2.0);
+        int y = static_cast<int>(height / 2.0);
+        wait_widget->setGeometry(x-200, y-120, 400, 170);
+        wait_widget->setVisible(true);
+    }
+    if (!visible) {
+        wait_widget->setVisible(false);
+    }
 }
 
 void Window_setting::changeVisibleOld_pas()
