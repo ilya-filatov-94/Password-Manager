@@ -621,19 +621,19 @@ void Client_window::dropEvent(QDropEvent* event)
             readAllPathImages(vector_index, vector_string);
             if (vector_index.contains(currentIndex)) {
                 int indexVector = vector_index.indexOf(currentIndex);
-                vector_string[indexVector].replace(vector_string[indexVector], filePath);
+                vector_string[indexVector].replace(vector_string[indexVector], copyPath);
                 writeAllPathImages(vector_index, vector_string);
             }
             else  {
-                writeOnePathImage(currentIndex, filePath);
+                writeOnePathImage(currentIndex, copyPath);
                 vector_index << currentIndex;
-                vector_string << filePath;
+                vector_string << copyPath;
                 counterBackgroundsSaves = vector_index.size();
                 settings->setValue("numberChangeBack", counterBackgroundsSaves);
             }
         }
         if (!file_for_paths_bg.exists()) {
-            writeOnePathImage(currentIndex, filePath);
+            writeOnePathImage(currentIndex, copyPath);
             counterBackgroundsSaves = 1;
             settings->setValue("numberChangeBack", counterBackgroundsSaves);
         }
