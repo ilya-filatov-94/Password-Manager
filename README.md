@@ -1,4 +1,4 @@
-# Desktop application for Windows - Password Manager
+# Password Manager - Desktop application for Windows
 
 ## Main objectives of the project
 1. Password manager for Windows, written using the Qt framework.
